@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { getNextMatch } from '@/services/database';
 import { format } from 'date-fns';
 import { Match } from '@/types/database';
+import { supabase } from '@/integrations/supabase/client';
 
 const HeroSection: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -15,10 +16,40 @@ const HeroSection: React.FC = () => {
   useEffect(() => {
     setIsLoaded(true);
     
-    const fetchNextMatch = async () => {
+    const fetchNextTavistockMatch = async () => {
       try {
-        const match = await getNextMatch();
-        setNextMatch(match);
+        // Get the Tavistock team id first
+        const { data: tavistockTeam } = await supabase
+          .from('teams')
+          .select('id')
+          .eq('is_home_team', true)
+          .single();
+        
+        if (!tavistockTeam) {
+          setIsLoading(false);
+          return;
+        }
+        
+        // Get next match where Tavistock is playing (either home or away)
+        const { data: matches } = await supabase
+          .from('matches')
+          .select(`
+            id,
+            match_date,
+            match_time,
+            location,
+            status,
+            home_score,
+            away_score,
+            home_team:home_team_id(id, name, short_name, logo_url),
+            away_team:away_team_id(id, name, short_name, logo_url)
+          `)
+          .or(`home_team_id.eq.${tavistockTeam.id},away_team_id.eq.${tavistockTeam.id}`)
+          .eq('status', 'upcoming')
+          .order('match_date', { ascending: true })
+          .limit(1);
+          
+        setNextMatch(matches && matches.length > 0 ? matches[0] : null);
       } catch (error) {
         console.error('Error fetching next match:', error);
       } finally {
@@ -26,7 +57,7 @@ const HeroSection: React.FC = () => {
       }
     };
     
-    fetchNextMatch();
+    fetchNextTavistockMatch();
   }, []);
 
   return (

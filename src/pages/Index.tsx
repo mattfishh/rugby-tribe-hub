@@ -1,12 +1,19 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import HeroSection from '@/components/home/HeroSection';
 import InstagramFeed from '@/components/home/InstagramFeed';
-import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Users, TrendingUp, Trophy, History } from 'lucide-react';
 
 const Index = () => {
+  // Ensure Instagram embeds are processed when the page loads
+  useEffect(() => {
+    // This will trigger the embedding of Instagram posts after component mount
+    if (window.instgrm) {
+      window.instgrm.Embeds.process();
+    }
+  }, []);
+
   return (
     <div className="bg-team-black min-h-screen">
       <HeroSection />

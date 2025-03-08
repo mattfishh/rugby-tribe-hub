@@ -1,63 +1,44 @@
 
-import React, { useState, useEffect } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ExternalLink, Instagram } from 'lucide-react';
-import { format } from 'date-fns';
-
-interface InstagramPost {
-  id: string;
-  media_url: string;
-  permalink: string;
-  caption: string;
-  timestamp: string;
-}
+import React, { useEffect } from 'react';
+import { Instagram } from 'lucide-react';
 
 const InstagramFeed: React.FC = () => {
-  const [posts, setPosts] = useState<InstagramPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Since we can't use a real Instagram API without authentication,
-  // we'll create mock data that looks realistic
+  // Load Instagram embed script
   useEffect(() => {
-    const mockPosts: InstagramPost[] = [
-      {
-        id: '1',
-        media_url: 'https://placehold.co/400x400/333333/FFFFFF?text=Match+Day',
-        permalink: 'https://www.instagram.com/p/example1/',
-        caption: 'Match day! The Trash Pandas are ready to take on our rivals this Saturday. Come support your local team! 🏉 #RugbyLife #TrashPandas',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: '2',
-        media_url: 'https://placehold.co/400x400/333333/FFFFFF?text=Training',
-        permalink: 'https://www.instagram.com/p/example2/',
-        caption: 'Hard work at training tonight. Preparing for this weekend\'s big match! 💪 #PrepMode #RugbyTraining',
-        timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: '3',
-        media_url: 'https://placehold.co/400x400/333333/FFFFFF?text=Team+Spirit',
-        permalink: 'https://www.instagram.com/p/example3/',
-        caption: 'Team spirit is what makes us strong. Great session with the lads today! #TeamWork #TrashPandasRugby',
-        timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-    ];
+    // Only add the script if it doesn't already exist
+    if (!document.getElementById('instagram-embed-script')) {
+      const script = document.createElement('script');
+      script.id = 'instagram-embed-script';
+      script.src = 'https://www.instagram.com/embed.js';
+      script.async = true;
+      document.body.appendChild(script);
 
-    // Simulate API call
-    setTimeout(() => {
-      setPosts(mockPosts);
-      setIsLoading(false);
-    }, 1000);
+      // Clean up the script when component unmounts
+      return () => {
+        // We don't remove it because it could be used by other components
+        // If you really want to remove it:
+        // const scriptEl = document.getElementById('instagram-embed-script');
+        // if (scriptEl) document.body.removeChild(scriptEl);
+      };
+    }
+    
+    // Instagram needs to process embeds after page loads
+    if (window.instgrm) {
+      window.instgrm.Embeds.process();
+    }
   }, []);
 
-  if (error) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-team-silver">Unable to load Instagram posts</p>
-      </div>
-    );
-  }
+  // Reload Instagram embeds when component mounts
+  useEffect(() => {
+    // Give the DOM time to render the blockquotes
+    const timer = setTimeout(() => {
+      if (window.instgrm) {
+        window.instgrm.Embeds.process();
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="w-full">
@@ -75,54 +56,76 @@ const InstagramFeed: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {isLoading ? (
-          // Loading skeletons
-          Array(3).fill(0).map((_, index) => (
-            <div key={index} className="bg-team-darkgray rounded-lg overflow-hidden">
-              <Skeleton className="w-full h-64 bg-team-gray/30" />
-              <div className="p-4">
-                <Skeleton className="w-3/4 h-4 bg-team-gray/30 mb-2" />
-                <Skeleton className="w-full h-4 bg-team-gray/30 mb-2" />
-                <Skeleton className="w-1/2 h-4 bg-team-gray/30" />
-              </div>
-            </div>
-          ))
-        ) : (
-          posts.map((post) => (
-            <div key={post.id} className="bg-team-darkgray rounded-lg overflow-hidden border border-team-gray/30 hover:border-team-gray/60 transition-all hover:translate-y-[-5px]">
-              <div className="aspect-square relative">
-                <img src={post.media_url} alt="Instagram post" className="w-full h-full object-cover" />
-                <a 
-                  href={post.permalink} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="absolute top-2 right-2 bg-black/50 p-2 rounded-full hover:bg-black/70 transition-colors"
-                >
-                  <ExternalLink className="w-4 h-4 text-white" />
-                </a>
-              </div>
-              <div className="p-4">
-                <p className="text-team-silver text-sm mb-2">
-                  {format(new Date(post.timestamp), 'MMMM d, yyyy')}
-                </p>
-                <p className="text-team-white line-clamp-3">
-                  {post.caption}
-                </p>
-                <a 
-                  href={post.permalink} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-block mt-3 text-team-silver hover:text-team-white transition-colors text-sm"
-                >
-                  View on Instagram
-                </a>
-              </div>
-            </div>
-          ))
-        )}
+        {/* Instagram post 1 */}
+        <div className="bg-team-darkgray rounded-lg overflow-hidden border border-team-gray/30">
+          <blockquote 
+            className="instagram-media" 
+            data-instgrm-captioned 
+            data-instgrm-permalink="https://www.instagram.com/p/DGiob4hu_fF/"
+            data-instgrm-version="14"
+            style={{ 
+              margin: 0, 
+              width: '100%', 
+              minHeight: '500px',
+              background: 'transparent',
+              border: 'none',
+              borderRadius: 0,
+              boxShadow: 'none'
+            }}
+          ></blockquote>
+        </div>
+        
+        {/* Instagram post 2 */}
+        <div className="bg-team-darkgray rounded-lg overflow-hidden border border-team-gray/30">
+          <blockquote 
+            className="instagram-media" 
+            data-instgrm-captioned 
+            data-instgrm-permalink="https://www.instagram.com/p/C6oFRGtOW2N/"
+            data-instgrm-version="14"
+            style={{ 
+              margin: 0, 
+              width: '100%', 
+              minHeight: '500px',
+              background: 'transparent',
+              border: 'none',
+              borderRadius: 0,
+              boxShadow: 'none'
+            }}
+          ></blockquote>
+        </div>
+        
+        {/* Instagram post 3 */}
+        <div className="bg-team-darkgray rounded-lg overflow-hidden border border-team-gray/30">
+          <blockquote 
+            className="instagram-media" 
+            data-instgrm-captioned 
+            data-instgrm-permalink="https://www.instagram.com/reel/C59MmYhv0x5/"
+            data-instgrm-version="14"
+            style={{ 
+              margin: 0, 
+              width: '100%', 
+              minHeight: '500px',
+              background: 'transparent',
+              border: 'none',
+              borderRadius: 0,
+              boxShadow: 'none'
+            }}
+          ></blockquote>
+        </div>
       </div>
     </div>
   );
 };
+
+// Add type definition for window.instgrm
+declare global {
+  interface Window {
+    instgrm?: {
+      Embeds: {
+        process: () => void;
+      };
+    };
+  }
+}
 
 export default InstagramFeed;

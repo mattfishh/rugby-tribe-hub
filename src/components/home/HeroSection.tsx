@@ -3,12 +3,30 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Calendar, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getNextMatch } from '@/services/database';
+import { format } from 'date-fns';
+import { Match } from '@/types/database';
 
 const HeroSection: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [nextMatch, setNextMatch] = useState<Match | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsLoaded(true);
+    
+    const fetchNextMatch = async () => {
+      try {
+        const match = await getNextMatch();
+        setNextMatch(match);
+      } catch (error) {
+        console.error('Error fetching next match:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchNextMatch();
   }, []);
 
   return (
@@ -59,36 +77,81 @@ const HeroSection: React.FC = () => {
                 <h2 className="text-xl font-display font-bold text-team-white">NEXT MATCH</h2>
               </div>
               <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <Calendar className="text-team-silver mr-2 h-5 w-5" />
-                  <span className="text-team-white">Saturday, June 15, 2024 • 3:00 PM</span>
-                </div>
-                <div className="flex items-center mb-6">
-                  <MapPin className="text-team-silver mr-2 h-5 w-5" />
-                  <span className="text-team-white">Tavistock Rugby Grounds</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col items-center">
-                    <img 
-                      src="/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png" 
-                      alt="Tavistock Trash Pandas" 
-                      className="w-16 h-16 object-contain"
-                    />
-                    <span className="text-team-white font-display font-bold mt-2">TRASH PANDAS</span>
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-team-silver"></div>
                   </div>
-                  
-                  <div className="text-center">
-                    <span className="text-team-silver font-display text-sm">VS</span>
-                  </div>
-                  
-                  <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 bg-team-gray/30 rounded-full flex items-center justify-center">
-                      <span className="text-2xl font-bold text-team-white">RC</span>
+                ) : nextMatch ? (
+                  <>
+                    <div className="flex items-center mb-4">
+                      <Calendar className="text-team-silver mr-2 h-5 w-5" />
+                      <span className="text-team-white">
+                        {format(new Date(nextMatch.match_date), 'EEEE, MMMM d, yyyy')}
+                        {nextMatch.match_time && ` • ${nextMatch.match_time.substring(0, 5)}`}
+                      </span>
                     </div>
-                    <span className="text-team-white font-display font-bold mt-2">RIVALS CLUB</span>
+                    {nextMatch.location && (
+                      <div className="flex items-center mb-6">
+                        <MapPin className="text-team-silver mr-2 h-5 w-5" />
+                        <span className="text-team-white">{nextMatch.location}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col items-center">
+                        {nextMatch.home_team?.logo_url ? (
+                          <img 
+                            src={nextMatch.home_team.logo_url} 
+                            alt={nextMatch.home_team.name} 
+                            className="w-16 h-16 object-contain"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-team-gray/30 rounded-full flex items-center justify-center">
+                            <span className="text-2xl font-bold text-team-white">
+                              {nextMatch.home_team?.short_name?.substring(0, 2) || 'HT'}
+                            </span>
+                          </div>
+                        )}
+                        <span className="text-team-white font-display font-bold mt-2">
+                          {nextMatch.home_team?.short_name || 'HOME TEAM'}
+                        </span>
+                      </div>
+                      
+                      <div className="text-center">
+                        <span className="text-team-silver font-display text-sm">VS</span>
+                      </div>
+                      
+                      <div className="flex flex-col items-center">
+                        {nextMatch.away_team?.logo_url ? (
+                          <img 
+                            src={nextMatch.away_team.logo_url} 
+                            alt={nextMatch.away_team.name} 
+                            className="w-16 h-16 object-contain"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-team-gray/30 rounded-full flex items-center justify-center">
+                            <span className="text-2xl font-bold text-team-white">
+                              {nextMatch.away_team?.short_name?.substring(0, 2) || 'AT'}
+                            </span>
+                          </div>
+                        )}
+                        <span className="text-team-white font-display font-bold mt-2">
+                          {nextMatch.away_team?.short_name || 'AWAY TEAM'}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-team-silver mb-2">No upcoming matches scheduled</p>
+                    <Link
+                      to="/schedule"
+                      className="text-team-white underline hover:text-team-white/80"
+                    >
+                      View full schedule
+                    </Link>
                   </div>
-                </div>
+                )}
                 
                 <Link
                   to="/schedule"

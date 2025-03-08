@@ -112,6 +112,28 @@ export async function getUpcomingMatches() {
   }
 }
 
+export async function getNextMatch() {
+  try {
+    const { data, error } = await supabase
+      .from('matches')
+      .select(`
+        *,
+        home_team:teams!home_team_id(*),
+        away_team:teams!away_team_id(*)
+      `)
+      .eq('status', 'upcoming')
+      .order('match_date', { ascending: true })
+      .limit(1)
+      .single();
+      
+    if (error) throw error;
+    return data as Match;
+  } catch (error) {
+    console.error('Error fetching next match:', error);
+    return null;
+  }
+}
+
 export async function getPastMatches() {
   try {
     const { data, error } = await supabase

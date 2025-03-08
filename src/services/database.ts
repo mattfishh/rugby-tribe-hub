@@ -97,14 +97,14 @@ export async function getUpcomingMatches() {
       .from('matches')
       .select(`
         *,
-        home_team:home_team_id(id, name, short_name, logo_url),
-        away_team:away_team_id(id, name, short_name, logo_url)
+        home_team:teams!home_team_id(*),
+        away_team:teams!away_team_id(*)
       `)
       .eq('status', 'upcoming')
       .order('match_date', { ascending: true });
       
     if (error) throw error;
-    return data;
+    return data as Match[];
   } catch (error) {
     console.error('Error fetching upcoming matches:', error);
     toast.error('Failed to load upcoming matches');
@@ -118,14 +118,14 @@ export async function getPastMatches() {
       .from('matches')
       .select(`
         *,
-        home_team:home_team_id(id, name, short_name, logo_url),
-        away_team:away_team_id(id, name, short_name, logo_url)
+        home_team:teams!home_team_id(*),
+        away_team:teams!away_team_id(*)
       `)
       .eq('status', 'completed')
       .order('match_date', { ascending: false });
       
     if (error) throw error;
-    return data;
+    return data as Match[];
   } catch (error) {
     console.error('Error fetching past matches:', error);
     toast.error('Failed to load past matches');

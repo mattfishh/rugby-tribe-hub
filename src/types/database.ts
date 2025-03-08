@@ -47,6 +47,8 @@ export interface Match {
   away_score: number | null;
   status: 'upcoming' | 'completed' | 'cancelled';
   created_at: string;
+  home_team?: Team;
+  away_team?: Team;
 }
 
 export interface PlayerStats {

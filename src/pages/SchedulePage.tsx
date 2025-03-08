@@ -6,6 +6,7 @@ import { Calendar, MapPin, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getUpcomingMatches, getPastMatches } from '@/services/database';
 import { format, parseISO } from 'date-fns';
+import type { Match } from '@/types/database';
 
 const SchedulePage = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -64,7 +65,7 @@ const SchedulePage = () => {
           <TabsContent value="upcoming" className="mt-0">
             {upcomingMatches && upcomingMatches.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {upcomingMatches.map((match, index) => (
+                {upcomingMatches.map((match: Match, index: number) => (
                   <Card 
                     key={match.id} 
                     className="bg-team-darkgray border-team-gray/30 overflow-hidden card-hover animate-fade-in"
@@ -77,7 +78,7 @@ const SchedulePage = () => {
                           <span className="text-team-white font-medium">{formatDate(match.match_date)}</span>
                         </div>
                         <div className="px-3 py-1 rounded bg-team-silver/20 text-team-silver text-sm font-semibold">
-                          {match.home_team.is_home_team ? 'HOME' : 'AWAY'}
+                          {match.home_team?.is_home_team ? 'HOME' : 'AWAY'}
                         </div>
                       </div>
                       
@@ -85,11 +86,11 @@ const SchedulePage = () => {
                         <div className="flex items-center justify-between mb-6">
                           <div className="flex flex-col items-center">
                             <img 
-                              src={match.home_team.logo_url || "/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"} 
-                              alt={match.home_team.name} 
+                              src={match.home_team?.logo_url || "/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"} 
+                              alt={match.home_team?.name || "Home Team"} 
                               className="w-16 h-16 object-contain"
                             />
-                            <span className="text-team-white font-display font-bold mt-2">{match.home_team.short_name}</span>
+                            <span className="text-team-white font-display font-bold mt-2">{match.home_team?.short_name}</span>
                           </div>
                           
                           <div className="text-center">
@@ -97,20 +98,20 @@ const SchedulePage = () => {
                           </div>
                           
                           <div className="flex flex-col items-center">
-                            {match.away_team.logo_url ? (
+                            {match.away_team?.logo_url ? (
                               <img 
-                                src={match.away_team.logo_url} 
-                                alt={match.away_team.name} 
+                                src={match.away_team?.logo_url} 
+                                alt={match.away_team?.name || "Away Team"} 
                                 className="w-16 h-16 object-contain"
                               />
                             ) : (
                               <div className="w-16 h-16 bg-team-gray/30 rounded-full flex items-center justify-center">
                                 <span className="text-2xl font-bold text-team-white">
-                                  {match.away_team.short_name.split(' ').map(word => word[0]).join('')}
+                                  {match.away_team?.short_name.split(' ').map(word => word[0]).join('')}
                                 </span>
                               </div>
                             )}
-                            <span className="text-team-white font-display font-bold mt-2">{match.away_team.short_name}</span>
+                            <span className="text-team-white font-display font-bold mt-2">{match.away_team?.short_name}</span>
                           </div>
                         </div>
                         
@@ -143,7 +144,7 @@ const SchedulePage = () => {
           <TabsContent value="past" className="mt-0">
             {pastMatches && pastMatches.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {pastMatches.map((match, index) => (
+                {pastMatches.map((match: Match, index: number) => (
                   <Card 
                     key={match.id} 
                     className="bg-team-darkgray border-team-gray/30 overflow-hidden card-hover animate-fade-in"
@@ -157,8 +158,8 @@ const SchedulePage = () => {
                         </div>
                         <div 
                           className={`px-3 py-1 rounded text-sm font-semibold ${
-                            (match.home_team.is_home_team && match.home_score > match.away_score) || 
-                            (match.away_team.is_home_team && match.away_score > match.home_score)
+                            (match.home_team?.is_home_team && match.home_score && match.away_score && match.home_score > match.away_score) || 
+                            (match.away_team?.is_home_team && match.home_score && match.away_score && match.away_score > match.home_score)
                               ? 'bg-green-900/20 text-green-400' 
                               : (match.home_score === match.away_score 
                                 ? 'bg-team-gray/20 text-team-silver'
@@ -173,11 +174,11 @@ const SchedulePage = () => {
                         <div className="flex items-center justify-between mb-6">
                           <div className="flex flex-col items-center">
                             <img 
-                              src={match.home_team.logo_url || "/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"}
-                              alt={match.home_team.name} 
+                              src={match.home_team?.logo_url || "/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"}
+                              alt={match.home_team?.name || "Home Team"} 
                               className="w-16 h-16 object-contain"
                             />
-                            <span className="text-team-white font-display font-bold mt-2">{match.home_team.short_name}</span>
+                            <span className="text-team-white font-display font-bold mt-2">{match.home_team?.short_name}</span>
                           </div>
                           
                           <div className="text-center">
@@ -185,20 +186,20 @@ const SchedulePage = () => {
                           </div>
                           
                           <div className="flex flex-col items-center">
-                            {match.away_team.logo_url ? (
+                            {match.away_team?.logo_url ? (
                               <img 
-                                src={match.away_team.logo_url} 
-                                alt={match.away_team.name} 
+                                src={match.away_team?.logo_url} 
+                                alt={match.away_team?.name || "Away Team"} 
                                 className="w-16 h-16 object-contain"
                               />
                             ) : (
                               <div className="w-16 h-16 bg-team-gray/30 rounded-full flex items-center justify-center">
                                 <span className="text-2xl font-bold text-team-white">
-                                  {match.away_team.short_name.split(' ').map(word => word[0]).join('')}
+                                  {match.away_team?.short_name.split(' ').map(word => word[0]).join('')}
                                 </span>
                               </div>
                             )}
-                            <span className="text-team-white font-display font-bold mt-2">{match.away_team.short_name}</span>
+                            <span className="text-team-white font-display font-bold mt-2">{match.away_team?.short_name}</span>
                           </div>
                         </div>
                         

@@ -15,6 +15,7 @@ import StandingsPage from "./pages/StandingsPage";
 import AboutPage from "./pages/AboutPage";
 import CasinoPage from "./pages/CasinoPage";
 import NotFound from "./pages/NotFound";
+import { useInitializeApp } from "./hooks/useInitializeApp";
 
 const queryClient = new QueryClient();
 
@@ -28,32 +29,43 @@ const ScrollToTop = () => {
   return null;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <HelmetProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <Navbar />
-          <div className="pt-16"> {/* Add padding to account for fixed navbar */}
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/schedule" element={<SchedulePage />} />
-              <Route path="/roster" element={<RosterPage />} />
-              <Route path="/standings" element={<StandingsPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/casino" element={<CasinoPage />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
-          <Footer />
-        </BrowserRouter>
-      </TooltipProvider>
-    </HelmetProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Initialize the app and seed the database if needed
+  const { isLoading } = useInitializeApp();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <HelmetProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <Navbar />
+            <div className="pt-16"> {/* Add padding to account for fixed navbar */}
+              {isLoading ? (
+                <div className="flex items-center justify-center h-screen">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-team-silver"></div>
+                </div>
+              ) : (
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/schedule" element={<SchedulePage />} />
+                  <Route path="/roster" element={<RosterPage />} />
+                  <Route path="/standings" element={<StandingsPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/casino" element={<CasinoPage />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              )}
+            </div>
+            <Footer />
+          </BrowserRouter>
+        </TooltipProvider>
+      </HelmetProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

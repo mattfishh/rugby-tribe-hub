@@ -3,266 +3,162 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Flag, Award, Phone } from 'lucide-react';
-
-// Mock data for the roster
-const rosterData = {
-  forwards: [
-    {
-      id: 1,
-      name: "Jack Williams",
-      position: "Prop",
-      number: 1,
-      height: "6'2\"",
-      weight: "240 lbs",
-      age: 28,
-      hometown: "Tavistock",
-      experience: "7 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Jack+W.",
-    },
-    {
-      id: 2,
-      name: "Thomas Smith",
-      position: "Hooker",
-      number: 2,
-      height: "5'11\"",
-      weight: "220 lbs",
-      age: 25,
-      hometown: "Brighton",
-      experience: "5 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Thomas+S.",
-    },
-    {
-      id: 3,
-      name: "Ryan Johnson",
-      position: "Prop",
-      number: 3,
-      height: "6'3\"",
-      weight: "255 lbs",
-      age: 29,
-      hometown: "Oxford",
-      experience: "8 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Ryan+J.",
-    },
-    {
-      id: 4,
-      name: "Michael Brown",
-      position: "Lock",
-      number: 4,
-      height: "6'6\"",
-      weight: "245 lbs",
-      age: 26,
-      hometown: "Tavistock",
-      experience: "4 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Michael+B.",
-    },
-    {
-      id: 5,
-      name: "David Jones",
-      position: "Lock",
-      number: 5,
-      height: "6'5\"",
-      weight: "240 lbs",
-      age: 30,
-      hometown: "Cambridge",
-      experience: "10 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=David+J.",
-    },
-    {
-      id: 6,
-      name: "James Wilson",
-      position: "Flanker",
-      number: 6,
-      height: "6'2\"",
-      weight: "220 lbs",
-      age: 26,
-      hometown: "Tavistock",
-      experience: "5 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=James+W.",
-    },
-  ],
-  backs: [
-    {
-      id: 7,
-      name: "Harry Moore",
-      position: "Scrum Half",
-      number: 9,
-      height: "5'9\"",
-      weight: "175 lbs",
-      age: 24,
-      hometown: "London",
-      experience: "6 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Harry+M.",
-    },
-    {
-      id: 8,
-      name: "Oliver Taylor",
-      position: "Fly Half",
-      number: 10,
-      height: "5'11\"",
-      weight: "185 lbs",
-      age: 27,
-      hometown: "Tavistock",
-      experience: "7 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Oliver+T.",
-    },
-    {
-      id: 9,
-      name: "Noah Martin",
-      position: "Inside Center",
-      number: 12,
-      height: "6'0\"",
-      weight: "200 lbs",
-      age: 25,
-      hometown: "Exeter",
-      experience: "5 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Noah+M.",
-    },
-    {
-      id: 10,
-      name: "Charlie Wright",
-      position: "Outside Center",
-      number: 13,
-      height: "6'1\"",
-      weight: "205 lbs",
-      age: 26,
-      hometown: "Tavistock",
-      experience: "4 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Charlie+W.",
-    },
-    {
-      id: 11,
-      name: "George Thompson",
-      position: "Winger",
-      number: 14,
-      height: "5'10\"",
-      weight: "180 lbs",
-      age: 23,
-      hometown: "Bristol",
-      experience: "3 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=George+T.",
-    },
-    {
-      id: 12,
-      name: "Leo Clark",
-      position: "Fullback",
-      number: 15,
-      height: "6'0\"",
-      weight: "190 lbs",
-      age: 28,
-      hometown: "Tavistock",
-      experience: "8 years",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Leo+C.",
-    },
-  ],
-  coaching: [
-    {
-      id: 13,
-      name: "Robert Anderson",
-      position: "Head Coach",
-      experience: "15 years",
-      background: "Former National Team Player",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Coach+Robert",
-    },
-    {
-      id: 14,
-      name: "Steven Lewis",
-      position: "Assistant Coach",
-      experience: "10 years",
-      background: "Specialist in Forward Play",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Coach+Steven",
-    },
-    {
-      id: 15,
-      name: "Mark Davies",
-      position: "Fitness Coach",
-      experience: "12 years",
-      background: "Sports Science Specialist",
-      imageUrl: "https://placehold.co/300x300/333333/FFFFFF?text=Coach+Mark",
-    },
-  ],
-};
+import { useQuery } from '@tanstack/react-query';
+import { getPlayers, getCoaches, getHomeTeam } from '@/services/database';
+import type { Player, Coach } from '@/types/database';
 
 const RosterPage = () => {
   const [activeTab, setActiveTab] = useState('forwards');
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  
-  const handlePlayerClick = (player) => {
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+
+  const { data: homeTeam } = useQuery({
+    queryKey: ['teams', 'home'],
+    queryFn: getHomeTeam
+  });
+
+  const { data: allPlayers, isLoading: playersLoading } = useQuery({
+    queryKey: ['players', homeTeam?.id],
+    queryFn: () => homeTeam?.id ? getPlayers(homeTeam.id) : Promise.resolve([]),
+    enabled: !!homeTeam?.id
+  });
+
+  const { data: coaches, isLoading: coachesLoading } = useQuery({
+    queryKey: ['coaches', homeTeam?.id],
+    queryFn: () => homeTeam?.id ? getCoaches(homeTeam.id) : Promise.resolve([]),
+    enabled: !!homeTeam?.id
+  });
+
+  // Split players into forwards and backs based on position
+  const forwardPositions = ['Prop', 'Hooker', 'Lock', 'Flanker', 'Number 8'];
+  const backPositions = ['Scrum Half', 'Fly Half', 'Inside Center', 'Outside Center', 'Winger', 'Fullback'];
+
+  const forwards = allPlayers?.filter(player => 
+    forwardPositions.some(pos => player.position.includes(pos))
+  ) || [];
+
+  const backs = allPlayers?.filter(player => 
+    backPositions.some(pos => player.position.includes(pos))
+  ) || [];
+
+  const handlePlayerClick = (player: Player) => {
     setSelectedPlayer(player);
   };
   
   const closePlayerDetails = () => {
     setSelectedPlayer(null);
   };
+
+  const isLoading = playersLoading || coachesLoading || !homeTeam;
   
   return (
     <div className="page-container">
       <h1 className="section-title">Team Roster</h1>
       
-      <Tabs 
-        defaultValue="forwards" 
-        className="w-full" 
-        onValueChange={(value) => {
-          setActiveTab(value);
-          setSelectedPlayer(null);
-        }}
-      >
-        <TabsList className="mb-8 bg-team-darkgray">
-          <TabsTrigger 
-            value="forwards" 
-            className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
-          >
-            Forwards
-          </TabsTrigger>
-          <TabsTrigger 
-            value="backs" 
-            className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
-          >
-            Backs
-          </TabsTrigger>
-          <TabsTrigger 
-            value="coaching" 
-            className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
-          >
-            Coaching Staff
-          </TabsTrigger>
-        </TabsList>
-        
-        {['forwards', 'backs'].map((section) => (
-          <TabsContent key={section} value={section} className="mt-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rosterData[section].map((player, index) => (
-                <Card 
-                  key={player.id} 
-                  className="bg-team-darkgray border-team-gray/30 overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-fade-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                  onClick={() => handlePlayerClick(player)}
-                >
-                  <div className="p-4 bg-team-gray/30 border-b border-team-gray/30 flex justify-between items-center">
-                    <span className="text-team-white font-display font-bold">{player.name}</span>
-                    <div className="px-3 py-1 bg-team-silver/20 rounded text-team-silver text-sm">
-                      #{player.number}
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-team-silver"></div>
+        </div>
+      ) : (
+        <Tabs 
+          defaultValue="forwards" 
+          className="w-full" 
+          onValueChange={(value) => {
+            setActiveTab(value);
+            setSelectedPlayer(null);
+          }}
+        >
+          <TabsList className="mb-8 bg-team-darkgray">
+            <TabsTrigger 
+              value="forwards" 
+              className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
+            >
+              Forwards
+            </TabsTrigger>
+            <TabsTrigger 
+              value="backs" 
+              className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
+            >
+              Backs
+            </TabsTrigger>
+            <TabsTrigger 
+              value="coaching" 
+              className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
+            >
+              Coaching Staff
+            </TabsTrigger>
+          </TabsList>
+          
+          {['forwards', 'backs'].map((section) => (
+            <TabsContent key={section} value={section} className="mt-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(section === 'forwards' ? forwards : backs).map((player, index) => (
+                  <Card 
+                    key={player.id} 
+                    className="bg-team-darkgray border-team-gray/30 overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                    onClick={() => handlePlayerClick(player)}
+                  >
+                    <div className="p-4 bg-team-gray/30 border-b border-team-gray/30 flex justify-between items-center">
+                      <span className="text-team-white font-display font-bold">{player.name}</span>
+                      <div className="px-3 py-1 bg-team-silver/20 rounded text-team-silver text-sm">
+                        #{player.number || '-'}
+                      </div>
                     </div>
+                    <div className="flex">
+                      <div className="w-1/3">
+                        <img 
+                          src={player.image_url || "https://placehold.co/300x300/333333/FFFFFF?text=Player"} 
+                          alt={player.name} 
+                          className="w-full aspect-square object-cover"
+                        />
+                      </div>
+                      <div className="w-2/3 p-4">
+                        <div className="text-team-white font-semibold mb-1">{player.position}</div>
+                        <div className="text-team-silver text-sm mb-2">
+                          {player.height || '-'} | {player.weight || '-'}
+                        </div>
+                        <div className="flex items-center text-team-silver text-sm">
+                          <Flag className="h-4 w-4 mr-1" />
+                          {player.hometown || 'Unknown'}
+                        </div>
+                        <div className="flex items-center text-team-silver text-sm mt-1">
+                          <Award className="h-4 w-4 mr-1" />
+                          {player.experience || 'Unknown'}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          ))}
+          
+          <TabsContent value="coaching" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {coaches?.map((coach, index) => (
+                <Card 
+                  key={coach.id} 
+                  className="bg-team-darkgray border-team-gray/30 overflow-hidden animate-fade-in"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="p-4 bg-team-gray/30 border-b border-team-gray/30">
+                    <span className="text-team-white font-display font-bold">{coach.name}</span>
                   </div>
                   <div className="flex">
                     <div className="w-1/3">
                       <img 
-                        src={player.imageUrl} 
-                        alt={player.name} 
+                        src={coach.image_url || "https://placehold.co/300x300/333333/FFFFFF?text=Coach"} 
+                        alt={coach.name} 
                         className="w-full aspect-square object-cover"
                       />
                     </div>
                     <div className="w-2/3 p-4">
-                      <div className="text-team-white font-semibold mb-1">{player.position}</div>
+                      <div className="text-team-white font-semibold mb-1">{coach.position}</div>
                       <div className="text-team-silver text-sm mb-2">
-                        {player.height} | {player.weight}
+                        Experience: {coach.experience || 'Unknown'}
                       </div>
-                      <div className="flex items-center text-team-silver text-sm">
-                        <Flag className="h-4 w-4 mr-1" />
-                        {player.hometown}
-                      </div>
-                      <div className="flex items-center text-team-silver text-sm mt-1">
-                        <Award className="h-4 w-4 mr-1" />
-                        {player.experience}
+                      <div className="text-team-silver text-sm">
+                        {coach.background || ''}
                       </div>
                     </div>
                   </div>
@@ -270,42 +166,8 @@ const RosterPage = () => {
               ))}
             </div>
           </TabsContent>
-        ))}
-        
-        <TabsContent value="coaching" className="mt-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {rosterData.coaching.map((coach, index) => (
-              <Card 
-                key={coach.id} 
-                className="bg-team-darkgray border-team-gray/30 overflow-hidden animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="p-4 bg-team-gray/30 border-b border-team-gray/30">
-                  <span className="text-team-white font-display font-bold">{coach.name}</span>
-                </div>
-                <div className="flex">
-                  <div className="w-1/3">
-                    <img 
-                      src={coach.imageUrl} 
-                      alt={coach.name} 
-                      className="w-full aspect-square object-cover"
-                    />
-                  </div>
-                  <div className="w-2/3 p-4">
-                    <div className="text-team-white font-semibold mb-1">{coach.position}</div>
-                    <div className="text-team-silver text-sm mb-2">
-                      Experience: {coach.experience}
-                    </div>
-                    <div className="text-team-silver text-sm">
-                      {coach.background}
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+        </Tabs>
+      )}
       
       {/* Player details modal */}
       {selectedPlayer && (
@@ -317,7 +179,7 @@ const RosterPage = () => {
             <div className="p-4 bg-team-gray/30 border-b border-team-gray/30 flex justify-between items-center">
               <div className="flex items-center">
                 <div className="px-3 py-1 bg-team-silver/20 rounded text-team-silver text-sm mr-3">
-                  #{selectedPlayer.number}
+                  #{selectedPlayer.number || '-'}
                 </div>
                 <span className="text-team-white font-display font-bold text-xl">{selectedPlayer.name}</span>
               </div>
@@ -335,7 +197,7 @@ const RosterPage = () => {
             <div className="p-6 flex flex-col md:flex-row">
               <div className="md:w-1/3 mb-4 md:mb-0">
                 <img 
-                  src={selectedPlayer.imageUrl} 
+                  src={selectedPlayer.image_url || "https://placehold.co/300x300/333333/FFFFFF?text=Player"} 
                   alt={selectedPlayer.name} 
                   className="w-full aspect-square object-cover rounded-md border border-team-gray/30"
                 />
@@ -351,23 +213,23 @@ const RosterPage = () => {
                     </div>
                     <div>
                       <div className="text-team-silver text-sm">Age</div>
-                      <div className="text-team-white">{selectedPlayer.age}</div>
+                      <div className="text-team-white">{selectedPlayer.age || 'Unknown'}</div>
                     </div>
                     <div>
                       <div className="text-team-silver text-sm">Height</div>
-                      <div className="text-team-white">{selectedPlayer.height}</div>
+                      <div className="text-team-white">{selectedPlayer.height || 'Unknown'}</div>
                     </div>
                     <div>
                       <div className="text-team-silver text-sm">Weight</div>
-                      <div className="text-team-white">{selectedPlayer.weight}</div>
+                      <div className="text-team-white">{selectedPlayer.weight || 'Unknown'}</div>
                     </div>
                     <div>
                       <div className="text-team-silver text-sm">Hometown</div>
-                      <div className="text-team-white">{selectedPlayer.hometown}</div>
+                      <div className="text-team-white">{selectedPlayer.hometown || 'Unknown'}</div>
                     </div>
                     <div>
                       <div className="text-team-silver text-sm">Experience</div>
-                      <div className="text-team-white">{selectedPlayer.experience}</div>
+                      <div className="text-team-white">{selectedPlayer.experience || 'Unknown'}</div>
                     </div>
                   </div>
                 </div>

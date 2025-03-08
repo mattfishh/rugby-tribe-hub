@@ -1,11 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Calendar, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getNextMatch } from '@/services/database';
-import { format } from 'date-fns';
 import { Match } from '@/types/database';
+import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 
 const HeroSection: React.FC = () => {
@@ -41,6 +39,9 @@ const HeroSection: React.FC = () => {
             status,
             home_score,
             away_score,
+            home_team_id,
+            away_team_id,
+            created_at,
             home_team:home_team_id(id, name, short_name, logo_url),
             away_team:away_team_id(id, name, short_name, logo_url)
           `)
@@ -49,7 +50,11 @@ const HeroSection: React.FC = () => {
           .order('match_date', { ascending: true })
           .limit(1);
           
-        setNextMatch(matches && matches.length > 0 ? matches[0] : null);
+        if (matches && matches.length > 0) {
+          setNextMatch(matches[0] as Match);
+        } else {
+          setNextMatch(null);
+        }
       } catch (error) {
         console.error('Error fetching next match:', error);
       } finally {

@@ -1,19 +1,9 @@
-
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import HeroSection from '@/components/home/HeroSection';
-import InstagramFeed from '@/components/home/InstagramFeed';
 import { Calendar, Users, TrendingUp, Trophy, History } from 'lucide-react';
 
 const Index = () => {
-  // Ensure Instagram embeds are processed when the page loads
-  useEffect(() => {
-    // This will trigger the embedding of Instagram posts after component mount
-    if (window.instgrm) {
-      window.instgrm.Embeds.process();
-    }
-  }, []);
-
   return (
     <div className="bg-team-black min-h-screen">
       <HeroSection />
@@ -41,13 +31,6 @@ const Index = () => {
               </Link>
             ))}
           </div>
-        </div>
-      </section>
-      
-      {/* Instagram feed section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <InstagramFeed />
         </div>
       </section>
       

@@ -17,29 +17,26 @@ const AboutPage: React.FC = () => {
           <div>
             <h2 className="text-2xl font-display font-bold mb-4">Our History</h2>
             <p className="mb-4 text-team-silver">
-              Founded in 2018, the Tavistock Trash Pandas Rugby Club emerged from a group of passionate rugby enthusiasts 
-              determined to bring competitive rugby to our community. What started as casual training sessions at local 
-              parks has evolved into one of the region's most respected rugby programs.
+              Founded in 2024, the Tavistock Trash Pandas emerged from a group of rugby players tired of commuting to Brantford to play for the Broncos. Members of the 2023 ORL Championship winning
+              Broncos decided to start their own team with one goal in mind: <strong>winning games without having to drive hours to practice.</strong> Since then, the team has practiced very little,
+              but has won every game.
             </p>
             <p className="mb-4 text-team-silver">
-              Our name, inspired by the tenacious and resourceful nature of raccoons (affectionately known as "trash pandas"), 
-              represents our playing philosophy: adaptable, resilient, and surprisingly tactical. Just as raccoons 
-              are known for their cleverness and versatility, our team approaches each match with strategic intelligence 
-              and unwavering determination.
+              Our name, inspired by the tenacious nature of raccoons, 
+              represents our playing philosophy: being mischevious, fierce and a little bit silly.
             </p>
           </div>
           
           <div className="bg-team-darkgray rounded-lg p-6">
             <h2 className="text-2xl font-display font-bold mb-4">Team Mission</h2>
             <p className="mb-4 text-team-silver">
-              The Tavistock Trash Pandas are committed to:
+              The Trash Pandas are committed to:
             </p>
             <ul className="list-disc pl-5 mb-4 text-team-silver space-y-2">
-              <li>Promoting rugby excellence through disciplined training and tactical innovation</li>
-              <li>Creating an inclusive environment that welcomes players of all skill levels</li>
-              <li>Developing rugby talent while emphasizing sportsmanship and character</li>
-              <li>Engaging with our community through outreach and youth development programs</li>
-              <li>Building lasting camaraderie among teammates on and off the field</li>
+              <li>Winning</li>
+              <li>Being an autism friendly environment</li>
+              <li>Developing top domestic rugby league athletes </li>
+              <li>Drinking beers with friends</li>
             </ul>
           </div>
         </div>
@@ -48,21 +45,21 @@ const AboutPage: React.FC = () => {
           <h2 className="text-2xl font-display font-bold mb-6 text-center">Our Values</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-team-darkgray p-6 rounded-lg text-center">
-              <h3 className="text-xl font-display font-bold mb-3">Resilience</h3>
+              <h3 className="text-xl font-display font-bold mb-3">Scoring</h3>
               <p className="text-team-silver">
-                We embrace challenges, learn from setbacks, and always come back stronger.
+                We score tries, and also cream pies
               </p>
             </div>
             <div className="bg-team-darkgray p-6 rounded-lg text-center">
-              <h3 className="text-xl font-display font-bold mb-3">Innovation</h3>
+              <h3 className="text-xl font-display font-bold mb-3">Banter</h3>
               <p className="text-team-silver">
-                We constantly evolve our game, finding creative solutions on and off the field.
+              We're committed to making more instagram shitposts than actual rugby content
               </p>
             </div>
             <div className="bg-team-darkgray p-6 rounded-lg text-center">
-              <h3 className="text-xl font-display font-bold mb-3">Community</h3>
+              <h3 className="text-xl font-display font-bold mb-3">Friendship</h3>
               <p className="text-team-silver">
-                We're more than a team—we're a family, supporting each other and our local area.
+              With the power of friendship, we can do anything
               </p>
             </div>
           </div>
@@ -71,18 +68,11 @@ const AboutPage: React.FC = () => {
         <div className="mb-12">
           <h2 className="text-2xl font-display font-bold mb-6">Join Our Team</h2>
           <p className="mb-4 text-team-silver">
-            The Tavistock Trash Pandas are always looking for passionate individuals to join our rugby family. 
-            Whether you're an experienced player or new to the sport, we have a place for you.
+            The Trash Pandas roster for the 2025 season has been announced, but if you're willing to fork over $5000, I will gladly let you take my place.
           </p>
           <p className="mb-4 text-team-silver">
-            Training sessions are held every Tuesday and Thursday evening at Tavistock Rugby Grounds.
-            For more information, contact our team manager at recruit@tavistocktrashpandas.com.
+            To organize a bribe or get in contact with the team, message me on instagram @tavistocktrashpandas
           </p>
-          <div className="mt-6">
-            <button className="inline-flex items-center px-6 py-3 rounded-md bg-team-silver text-team-black font-display font-semibold hover:bg-team-white transition-colors duration-300">
-              Contact Us
-            </button>
-          </div>
         </div>
       </div>
     </>

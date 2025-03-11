@@ -162,7 +162,7 @@ export async function getPastMatches() {
 }
 
 // Player Stats
-export async function getPlayerStats(season: string) {
+export async function getPlayerStats(season: string = "2025") {
   try {
     const { data, error } = await supabase
       .from('player_stats')
@@ -183,9 +183,9 @@ export async function getPlayerStats(season: string) {
 }
 
 // Team Standings
-export async function getTeamStandings(season: string, division?: string) {
+export async function getTeamStandings(season: string) {
   try {
-    let query = supabase
+    const { data, error } = await supabase
       .from('team_standings')
       .select(`
         *,
@@ -193,12 +193,6 @@ export async function getTeamStandings(season: string, division?: string) {
       `)
       .eq('season', season)
       .order('total_points', { ascending: false });
-      
-    if (division) {
-      query = query.eq('division', division);
-    }
-    
-    const { data, error } = await query;
       
     if (error) throw error;
     return data;
@@ -210,7 +204,7 @@ export async function getTeamStandings(season: string, division?: string) {
 }
 
 // Update team standings from match results
-export async function updateTeamStandingsFromMatches(season: string = "2023-2024") {
+export async function updateTeamStandingsFromMatches(season: string = "2025") {
   try {
     // Get all completed matches (with scores)
     const { data: matches, error: matchesError } = await supabase
@@ -354,6 +348,6 @@ export async function updateTeamStandingsFromMatches(season: string = "2023-2024
   } catch (error) {
     console.error('Error updating team standings:', error);
     toast.error('Failed to update team standings');
-    return false;
+    throw error;
   }
 }

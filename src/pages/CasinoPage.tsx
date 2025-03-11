@@ -196,7 +196,7 @@ const CasinoPage = () => {
     // Check for natural blackjack
     setTimeout(() => {
       const playerScore = calculateHandValue(newPlayerHand);
-      const dealerScore = calculateHandValue(newDealerHand, false);
+      const dealerScore = calculateHandValue(newDealerHand);
       const dealerVisibleScore = calculateHandValue([dCard1]); // Score of visible card only
       
       if (playerScore === 21 && dealerScore === 21) {

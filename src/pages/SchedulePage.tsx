@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, MapPin, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getUpcomingMatches, getPastMatches } from '@/services/database';
-import { format, parseISO, isAfter, startOfDay } from 'date-fns';
+import { format, parseISO, isBefore, isAfter, startOfDay } from 'date-fns';
 import type { Match } from '@/types/database';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -49,9 +49,9 @@ const SchedulePage = () => {
     
     return matches.filter(match => {
       const matchDate = startOfDay(parseISO(match.match_date));
-      // For past matches, return dates before or equal to today
-      // For upcoming matches, return dates after today
-      return isPast ? !isAfter(matchDate, today) : isAfter(matchDate, today);
+      // For past matches, return dates before today
+      // For upcoming matches, return dates after or equal to today
+      return isPast ? isBefore(matchDate, today) : !isBefore(matchDate, today);
     });
   };
   
@@ -142,7 +142,7 @@ const SchedulePage = () => {
                             <span className="text-team-white font-medium">{formatDate(match.match_date)}</span>
                           </div>
                           <div className="px-3 py-1 rounded bg-team-silver/20 text-team-silver text-sm font-semibold">
-                            {match.home_team?.is_home_team ? 'HOME' : 'AWAY'}
+                            {match.home_team_id === '9674a0af-661e-4dbb-be75-2e5f72c1dc91' ? 'HOME' : 'AWAY'}
                           </div>
                         </div>
                         
@@ -222,15 +222,26 @@ const SchedulePage = () => {
                           </div>
                           <div 
                             className={`px-3 py-1 rounded text-sm font-semibold ${
-                              (match.home_team?.is_home_team && match.home_score && match.away_score && match.home_score > match.away_score) || 
-                              (match.away_team?.is_home_team && match.home_score && match.away_score && match.away_score > match.home_score)
-                                ? 'bg-green-900/20 text-green-400' 
-                                : (match.home_score === match.away_score 
-                                  ? 'bg-team-gray/20 text-team-silver'
-                                  : 'bg-red-900/20 text-red-400')
+                              match.home_score !== null && match.away_score !== null ? (
+                                match.home_team_id === '9674a0af-661e-4dbb-be75-2e5f72c1dc91' ? (
+                                  match.home_score > match.away_score 
+                                    ? 'bg-green-900/20 text-green-400' 
+                                    : match.home_score === match.away_score 
+                                      ? 'bg-team-gray/20 text-team-silver'
+                                      : 'bg-red-900/20 text-red-400'
+                                ) : (
+                                  match.away_score > match.home_score 
+                                    ? 'bg-green-900/20 text-green-400' 
+                                    : match.home_score === match.away_score 
+                                      ? 'bg-team-gray/20 text-team-silver' 
+                                      : 'bg-red-900/20 text-red-400'
+                                )
+                              ) : 'bg-team-gray/20 text-team-silver'
                             }`}
                           >
-                            {match.home_score}-{match.away_score}
+                            {match.home_score !== null && match.away_score !== null 
+                              ? `${match.home_score}-${match.away_score}` 
+                              : 'No Score'}
                           </div>
                         </div>
                         

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,7 +7,7 @@ import { getPlayers, getCoaches, getHomeTeam } from '@/services/database';
 import type { Player, Coach } from '@/types/database';
 
 const RosterPage = () => {
-  const [activeTab, setActiveTab] = useState('forwards');
+  const [activeTab, setActiveTab] = useState('goodguys');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   const { data: homeTeam } = useQuery({
@@ -28,16 +27,13 @@ const RosterPage = () => {
     enabled: !!homeTeam?.id
   });
 
-  // Split players into forwards and backs based on position
-  const forwardPositions = ['Prop', 'Hooker', 'Lock', 'Flanker', 'Number 8'];
-  const backPositions = ['Scrum Half', 'Fly Half', 'Inside Center', 'Outside Center', 'Winger', 'Fullback'];
-
-  const forwards = allPlayers?.filter(player => 
-    forwardPositions.some(pos => player.position.includes(pos))
+  // Split players into Good Guys and Bad Guys based on position
+  const goodGuys = allPlayers?.filter(player => 
+    player.position.includes('Good Guy')
   ) || [];
 
-  const backs = allPlayers?.filter(player => 
-    backPositions.some(pos => player.position.includes(pos))
+  const badGuys = allPlayers?.filter(player => 
+    player.position.includes('Bad Guy')
   ) || [];
 
   const handlePlayerClick = (player: Player) => {
@@ -60,7 +56,7 @@ const RosterPage = () => {
         </div>
       ) : (
         <Tabs 
-          defaultValue="forwards" 
+          defaultValue="goodguys" 
           className="w-full" 
           onValueChange={(value) => {
             setActiveTab(value);
@@ -69,16 +65,16 @@ const RosterPage = () => {
         >
           <TabsList className="mb-8 bg-team-darkgray">
             <TabsTrigger 
-              value="forwards" 
+              value="goodguys" 
               className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
             >
-              Forwards
+              Good Guys
             </TabsTrigger>
             <TabsTrigger 
-              value="backs" 
+              value="badguys" 
               className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
             >
-              Backs
+              Bad Guys
             </TabsTrigger>
             <TabsTrigger 
               value="coaching" 
@@ -88,10 +84,10 @@ const RosterPage = () => {
             </TabsTrigger>
           </TabsList>
           
-          {['forwards', 'backs'].map((section) => (
+          {['goodguys', 'badguys'].map((section) => (
             <TabsContent key={section} value={section} className="mt-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(section === 'forwards' ? forwards : backs).map((player, index) => (
+                {(section === 'goodguys' ? goodGuys : badGuys).map((player, index) => (
                   <Card 
                     key={player.id} 
                     className="bg-team-darkgray border-team-gray/30 overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-fade-in"

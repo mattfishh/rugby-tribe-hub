@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
@@ -6,8 +5,8 @@ const AboutPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>About | Tavistock Trash Pandas Rugby</title>
-        <meta name="description" content="Learn about the Tavistock Trash Pandas Rugby team, our history, mission, and values." />
+        <title>About | Tavistock Trash Pandas</title>
+        <meta name="description" content="Learn about the Tavistock Trash Pandas Rugby team, our history, and our mission." />
       </Helmet>
       
       <div className="page-container">

@@ -6,6 +6,7 @@ import type { Match } from '@/types/database';
 import TeamFilter from '@/components/schedule/TeamFilter';
 import MatchesGrid from '@/components/schedule/MatchesGrid';
 import LoadingSpinner from '@/components/schedule/LoadingSpinner';
+import { Helmet } from 'react-helmet-async';
 
 // Team data from the SQL file
 const teams = [
@@ -50,6 +51,11 @@ const SchedulePage = () => {
   
   return (
     <div className="page-container">
+      <Helmet>
+        <title>Schedule | Tavistock Trash Pandas</title>
+        <meta name="description" content="Match schedule for the Tavistock Trash Pandas Rugby team." />
+      </Helmet>
+      
       <h1 className="section-title">Season Schedule</h1>
       
       {isLoading ? (

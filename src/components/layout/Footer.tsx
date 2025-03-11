@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Mail } from 'lucide-react';
@@ -35,44 +34,19 @@ const Footer: React.FC = () => {
                 <li><Link to="/casino" className="text-team-silver hover:text-team-white transition-colors">Casino</Link></li>
               </ul>
             </div>
-            <div>
-              <h3 className="text-team-white font-display font-semibold text-lg mb-4">Support</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-team-silver hover:text-team-white transition-colors">Contact</a></li>
-                <li><a href="#" className="text-team-silver hover:text-team-white transition-colors">Sponsors</a></li>
-                <li><a href="#" className="text-team-silver hover:text-team-white transition-colors">Join the Team</a></li>
-              </ul>
-            </div>
           </div>
           
           <div>
             <h3 className="text-team-white font-display font-semibold text-lg mb-4">Connect With Us</h3>
             <div className="flex space-x-4 justify-center md:justify-start">
-              <a href="#" className="text-team-silver hover:text-team-white transition-colors">
-                <Facebook className="w-6 h-6" />
-              </a>
-              <a href="#" className="text-team-silver hover:text-team-white transition-colors">
-                <Twitter className="w-6 h-6" />
-              </a>
-              <a href="#" className="text-team-silver hover:text-team-white transition-colors">
+              <a 
+                href="https://instagram.com/tavistocktrashpandas" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-team-silver hover:text-team-white transition-colors"
+              >
                 <Instagram className="w-6 h-6" />
               </a>
-              <a href="#" className="text-team-silver hover:text-team-white transition-colors">
-                <Youtube className="w-6 h-6" />
-              </a>
-            </div>
-            <div className="mt-6">
-              <h4 className="text-team-white font-semibold mb-2">Subscribe to Updates</h4>
-              <div className="flex">
-                <input 
-                  type="email" 
-                  placeholder="Email Address" 
-                  className="bg-team-gray text-team-white px-4 py-2 rounded-l-md w-full focus:outline-none" 
-                />
-                <button className="bg-team-silver hover:bg-team-white text-team-black px-3 py-2 rounded-r-md transition-colors">
-                  <Mail className="w-5 h-5" />
-                </button>
-              </div>
             </div>
           </div>
         </div>

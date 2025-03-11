@@ -133,7 +133,7 @@ const HeroSection = () => {
               Tavistock <span className="text-team-silver">Trash Pandas</span>
             </h1>
             <p className="text-xl text-team-white/80 mb-8">
-              The fiercest rugby club in Ontario, playing with heart, grit, and a touch of trash panda attitude.
+              Home of the 2024 Ontario Rugby League Champions, and the worst blackjack players you've ever seen.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link to="/about" className="px-6 py-3 bg-team-silver text-team-black font-display font-semibold rounded hover:bg-team-white transition-colors duration-300">

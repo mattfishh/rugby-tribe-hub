@@ -534,8 +534,8 @@ const CasinoPage = () => {
   return (
     <>
       <Helmet>
-        <title>RaccJack | Tavistock Trash Pandas Rugby</title>
-        <meta name="description" content="Play RaccJack, the Trash Pandas' version of Blackjack!" />
+        <title>Casino | Tavistock Trash Pandas</title>
+        <meta name="description" content="Play games and earn rewards with the Tavistock Trash Pandas Rugby team." />
       </Helmet>
       
       <div className="page-container">

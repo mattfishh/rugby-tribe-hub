@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, MapPin, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getUpcomingMatches, getPastMatches } from '@/services/database';
-import { format, parseISO, isBefore, isAfter, startOfDay } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import type { Match } from '@/types/database';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -20,12 +21,21 @@ const teams = [
 
 const SchedulePage = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
-  const [selectedTeam, setSelectedTeam] = useState('9674a0af-661e-4dbb-be75-2e5f72c1dc91'); // Default to Tavistock
+  const [selectedTeam, setSelectedTeam] = useState('all'); // Changed default to 'all'
   
-  const { data: allMatches, isLoading } = useQuery({
-    queryKey: ['matches'],
-    queryFn: () => Promise.all([getUpcomingMatches(), getPastMatches()]).then(([upcoming, past]) => [...upcoming, ...past])
+  // Query for upcoming matches
+  const { data: upcomingMatchesData, isLoading: isLoadingUpcoming } = useQuery({
+    queryKey: ['upcoming-matches'],
+    queryFn: getUpcomingMatches
   });
+  
+  // Query for past matches
+  const { data: pastMatchesData, isLoading: isLoadingPast } = useQuery({
+    queryKey: ['past-matches'],
+    queryFn: getPastMatches
+  });
+  
+  const isLoading = isLoadingUpcoming || isLoadingPast;
   
   const formatDate = (dateString: string) => {
     return format(parseISO(dateString), 'MMMM d, yyyy');
@@ -41,20 +51,6 @@ const SchedulePage = () => {
     return `${formattedHour}:${minutes} ${ampm}`;
   };
   
-  // Filter matches based on date (upcoming or past)
-  const filterMatchesByDate = (matches: Match[] | undefined, isPast: boolean) => {
-    if (!matches) return [];
-    
-    const today = startOfDay(new Date());
-    
-    return matches.filter(match => {
-      const matchDate = startOfDay(parseISO(match.match_date));
-      // For past matches, return dates before today
-      // For upcoming matches, return dates after or equal to today
-      return isPast ? isBefore(matchDate, today) : !isBefore(matchDate, today);
-    });
-  };
-  
   // Filter matches based on selected team
   const filterMatchesByTeam = (matches: Match[] | undefined) => {
     if (!matches) return [];
@@ -65,14 +61,8 @@ const SchedulePage = () => {
     );
   };
 
-  // Apply both filters
-  const getFilteredMatches = (isPast: boolean) => {
-    const dateFiltered = filterMatchesByDate(allMatches, isPast);
-    return filterMatchesByTeam(dateFiltered);
-  };
-
-  const upcomingMatches = getFilteredMatches(false);
-  const pastMatches = getFilteredMatches(true);
+  const filteredUpcomingMatches = filterMatchesByTeam(upcomingMatchesData);
+  const filteredPastMatches = filterMatchesByTeam(pastMatchesData);
   
   return (
     <div className="page-container">
@@ -127,9 +117,9 @@ const SchedulePage = () => {
             </div>
             
             <TabsContent value="upcoming" className="mt-0">
-              {upcomingMatches.length > 0 ? (
+              {filteredUpcomingMatches.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {upcomingMatches.map((match: Match, index: number) => (
+                  {filteredUpcomingMatches.map((match: Match, index: number) => (
                     <Card 
                       key={match.id} 
                       className="bg-team-darkgray border-team-gray/30 overflow-hidden card-hover animate-fade-in"
@@ -206,9 +196,9 @@ const SchedulePage = () => {
             </TabsContent>
             
             <TabsContent value="past" className="mt-0">
-              {pastMatches.length > 0 ? (
+              {filteredPastMatches.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {pastMatches.map((match: Match, index: number) => (
+                  {filteredPastMatches.map((match: Match, index: number) => (
                     <Card 
                       key={match.id} 
                       className="bg-team-darkgray border-team-gray/30 overflow-hidden card-hover animate-fade-in"

@@ -93,6 +93,8 @@ export async function getCoaches(teamId: string) {
 // Matches
 export async function getUpcomingMatches() {
   try {
+    const today = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
+    
     const { data, error } = await supabase
       .from('matches')
       .select(`
@@ -100,7 +102,7 @@ export async function getUpcomingMatches() {
         home_team:teams!home_team_id(*),
         away_team:teams!away_team_id(*)
       `)
-      .eq('status', 'upcoming')
+      .gte('match_date', today)
       .order('match_date', { ascending: true });
       
     if (error) throw error;
@@ -114,6 +116,8 @@ export async function getUpcomingMatches() {
 
 export async function getNextMatch() {
   try {
+    const today = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
+    
     const { data, error } = await supabase
       .from('matches')
       .select(`
@@ -121,7 +125,7 @@ export async function getNextMatch() {
         home_team:teams!home_team_id(*),
         away_team:teams!away_team_id(*)
       `)
-      .eq('status', 'upcoming')
+      .gte('match_date', today)
       .order('match_date', { ascending: true })
       .limit(1)
       .single();
@@ -136,6 +140,8 @@ export async function getNextMatch() {
 
 export async function getPastMatches() {
   try {
+    const today = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
+    
     const { data, error } = await supabase
       .from('matches')
       .select(`
@@ -143,7 +149,7 @@ export async function getPastMatches() {
         home_team:teams!home_team_id(*),
         away_team:teams!away_team_id(*)
       `)
-      .eq('status', 'completed')
+      .lt('match_date', today)
       .order('match_date', { ascending: false });
       
     if (error) throw error;

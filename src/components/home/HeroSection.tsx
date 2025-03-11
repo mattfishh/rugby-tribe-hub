@@ -3,9 +3,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 import type { Match } from '@/types/database';
+import { supabase } from '@/integrations/supabase/client';
 
 const HeroSection = () => {
   // Query the next match that involves Tavistock
@@ -13,6 +13,7 @@ const HeroSection = () => {
     queryKey: ['next-match'],
     queryFn: async () => {
       const homeTeamId = '9674a0af-661e-4dbb-be75-2e5f72c1dc91'; // Tavistock Trash Pandas ID
+      const today = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
       
       const { data, error } = await supabase
         .from('matches')
@@ -22,7 +23,7 @@ const HeroSection = () => {
           away_team:teams!away_team_id(*)
         `)
         .or(`home_team_id.eq.${homeTeamId},away_team_id.eq.${homeTeamId}`)
-        .gte('match_date', new Date().toISOString().split('T')[0])
+        .gte('match_date', today)
         .order('match_date', { ascending: true })
         .limit(1)
         .single();

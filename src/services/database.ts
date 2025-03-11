@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { Player, Coach, Match, PlayerStats, TeamStanding, Team } from "@/types/database";
 import { toast } from "sonner";
@@ -207,5 +206,154 @@ export async function getTeamStandings(season: string, division?: string) {
     console.error('Error fetching team standings:', error);
     toast.error('Failed to load standings');
     return [];
+  }
+}
+
+// Update team standings from match results
+export async function updateTeamStandingsFromMatches(season: string = "2023-2024") {
+  try {
+    // Get all completed matches (with scores)
+    const { data: matches, error: matchesError } = await supabase
+      .from('matches')
+      .select(`
+        *,
+        home_team:teams!home_team_id(*),
+        away_team:teams!away_team_id(*)
+      `)
+      .not('home_score', 'is', null)
+      .not('away_score', 'is', null);
+      
+    if (matchesError) throw matchesError;
+    
+    if (!matches || matches.length === 0) {
+      toast.info('No completed matches found to update standings');
+      return false;
+    }
+    
+    // Get all teams
+    const { data: teams, error: teamsError } = await supabase
+      .from('teams')
+      .select('*');
+      
+    if (teamsError) throw teamsError;
+    
+    if (!teams || teams.length === 0) {
+      toast.error('No teams found');
+      return false;
+    }
+    
+    // Initialize standings for each team
+    const standings: Record<string, {
+      team_id: string,
+      season: string,
+      played: number,
+      won: number,
+      lost: number,
+      drawn: number,
+      points_for: number,
+      points_against: number,
+      bonus_points: number,
+      total_points: number
+    }> = {};
+    
+    teams.forEach(team => {
+      standings[team.id] = {
+        team_id: team.id,
+        season,
+        played: 0,
+        won: 0,
+        lost: 0,
+        drawn: 0,
+        points_for: 0,
+        points_against: 0,
+        bonus_points: 0,
+        total_points: 0
+      };
+    });
+    
+    // Process each match
+    matches.forEach(match => {
+      if (match.home_score === null || match.away_score === null || 
+          !match.home_team_id || !match.away_team_id) return;
+          
+      const homeTeamStanding = standings[match.home_team_id];
+      const awayTeamStanding = standings[match.away_team_id];
+      
+      if (!homeTeamStanding || !awayTeamStanding) return;
+      
+      // Update matches played
+      homeTeamStanding.played += 1;
+      awayTeamStanding.played += 1;
+      
+      // Update points for and against
+      homeTeamStanding.points_for += match.home_score;
+      homeTeamStanding.points_against += match.away_score;
+      awayTeamStanding.points_for += match.away_score;
+      awayTeamStanding.points_against += match.home_score;
+      
+      // Update win/loss/draw
+      if (match.home_score > match.away_score) {
+        // Home team won
+        homeTeamStanding.won += 1;
+        awayTeamStanding.lost += 1;
+        homeTeamStanding.total_points += 4; // 4 points for a win
+      } else if (match.home_score < match.away_score) {
+        // Away team won
+        homeTeamStanding.lost += 1;
+        awayTeamStanding.won += 1;
+        awayTeamStanding.total_points += 4; // 4 points for a win
+      } else {
+        // Draw
+        homeTeamStanding.drawn += 1;
+        awayTeamStanding.drawn += 1;
+        homeTeamStanding.total_points += 2; // 2 points for a draw
+        awayTeamStanding.total_points += 2; // 2 points for a draw
+      }
+      
+      // Add bonus point for scoring 4+ tries (assuming each try is worth 5 points)
+      // This is a rugby-specific rule - customize as needed
+      if (match.home_score >= 20) {
+        homeTeamStanding.bonus_points += 1;
+        homeTeamStanding.total_points += 1;
+      }
+      if (match.away_score >= 20) {
+        awayTeamStanding.bonus_points += 1;
+        awayTeamStanding.total_points += 1;
+      }
+      
+      // Add losing bonus point for losing by 7 or fewer points
+      if (match.home_score < match.away_score && (match.away_score - match.home_score) <= 7) {
+        homeTeamStanding.bonus_points += 1;
+        homeTeamStanding.total_points += 1;
+      }
+      if (match.away_score < match.home_score && (match.home_score - match.away_score) <= 7) {
+        awayTeamStanding.bonus_points += 1;
+        awayTeamStanding.total_points += 1;
+      }
+    });
+    
+    // First, clear existing standings for the season
+    const { error: deleteError } = await supabase
+      .from('team_standings')
+      .delete()
+      .eq('season', season);
+      
+    if (deleteError) throw deleteError;
+    
+    // Insert new standings
+    const standingsArray = Object.values(standings);
+    
+    const { error: insertError } = await supabase
+      .from('team_standings')
+      .insert(standingsArray);
+      
+    if (insertError) throw insertError;
+    
+    toast.success('Team standings updated successfully');
+    return true;
+  } catch (error) {
+    console.error('Error updating team standings:', error);
+    toast.error('Failed to update team standings');
+    return false;
   }
 }

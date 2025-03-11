@@ -2,6 +2,9 @@
 import React from 'react';
 import type { Match } from '@/types/database';
 import MatchCard from './MatchCard';
+import { Button } from '@/components/ui/button';
+import { updateTeamStandingsFromMatches } from '@/services/database';
+import { RefreshCw } from 'lucide-react';
 
 type MatchesGridProps = {
   matches: Match[];
@@ -9,6 +12,10 @@ type MatchesGridProps = {
 };
 
 const MatchesGrid = ({ matches, isPast = false }: MatchesGridProps) => {
+  const handleUpdateStandings = async () => {
+    await updateTeamStandingsFromMatches();
+  };
+
   if (matches.length === 0) {
     return (
       <div className="text-center py-12 bg-team-darkgray rounded-lg border border-team-gray/30">
@@ -37,15 +44,29 @@ const MatchesGrid = ({ matches, isPast = false }: MatchesGridProps) => {
   });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {sortedMatches.map((match, index) => (
-        <MatchCard 
-          key={match.id} 
-          match={match} 
-          isPast={isPast} 
-          index={index} 
-        />
-      ))}
+    <div>
+      {isPast && (
+        <div className="mb-6 flex justify-end">
+          <Button 
+            onClick={handleUpdateStandings} 
+            className="flex items-center gap-2 bg-team-accent hover:bg-team-accent/80"
+          >
+            <RefreshCw size={16} />
+            Update Standings
+          </Button>
+        </div>
+      )}
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {sortedMatches.map((match, index) => (
+          <MatchCard 
+            key={match.id} 
+            match={match} 
+            isPast={isPast} 
+            index={index} 
+          />
+        ))}
+      </div>
     </div>
   );
 };

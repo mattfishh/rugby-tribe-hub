@@ -1,13 +1,12 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, MapPin, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getUpcomingMatches, getPastMatches } from '@/services/database';
-import { format, parseISO } from 'date-fns';
 import type { Match } from '@/types/database';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import TeamFilter from '@/components/schedule/TeamFilter';
+import MatchesGrid from '@/components/schedule/MatchesGrid';
+import LoadingSpinner from '@/components/schedule/LoadingSpinner';
 
 // Team data from the SQL file
 const teams = [
@@ -21,7 +20,7 @@ const teams = [
 
 const SchedulePage = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
-  const [selectedTeam, setSelectedTeam] = useState('all'); // Changed default to 'all'
+  const [selectedTeam, setSelectedTeam] = useState('all');
   
   // Query for upcoming matches
   const { data: upcomingMatchesData, isLoading: isLoadingUpcoming } = useQuery({
@@ -36,20 +35,6 @@ const SchedulePage = () => {
   });
   
   const isLoading = isLoadingUpcoming || isLoadingPast;
-  
-  const formatDate = (dateString: string) => {
-    return format(parseISO(dateString), 'MMMM d, yyyy');
-  };
-  
-  const formatTime = (timeString: string | null) => {
-    if (!timeString) return '';
-    // Format time without seconds, e.g., "15:00:00" -> "3:00 PM"
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const formattedHour = hour % 12 || 12;
-    return `${formattedHour}:${minutes} ${ampm}`;
-  };
   
   // Filter matches based on selected team
   const filterMatchesByTeam = (matches: Match[] | undefined) => {
@@ -69,9 +54,7 @@ const SchedulePage = () => {
       <h1 className="section-title">Season Schedule</h1>
       
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-team-silver"></div>
-        </div>
+        <LoadingSpinner />
       ) : (
         <>
           <Tabs defaultValue="upcoming" className="w-full" onValueChange={setActiveTab}>
@@ -91,207 +74,24 @@ const SchedulePage = () => {
             </TabsList>
             
             {/* Team selector */}
-            <div className="mb-6">
-              <Select 
-                value={selectedTeam} 
-                onValueChange={setSelectedTeam}
-              >
-                <SelectTrigger className="w-full md:w-72 bg-team-darkgray border-team-gray/30 text-team-white">
-                  <SelectValue placeholder="Select a team" />
-                </SelectTrigger>
-                <SelectContent className="bg-team-darkgray border-team-gray/30">
-                  <SelectItem value="all" className="text-team-white hover:bg-team-gray/40">
-                    All Teams
-                  </SelectItem>
-                  {teams.map(team => (
-                    <SelectItem 
-                      key={team.id} 
-                      value={team.id}
-                      className="text-team-white hover:bg-team-gray/40"
-                    >
-                      {team.shortName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <TeamFilter 
+              teams={teams} 
+              selectedTeam={selectedTeam}
+              onSelectTeam={setSelectedTeam}
+            />
             
             <TabsContent value="upcoming" className="mt-0">
-              {filteredUpcomingMatches.length > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {filteredUpcomingMatches.map((match: Match, index: number) => (
-                    <Card 
-                      key={match.id} 
-                      className="bg-team-darkgray border-team-gray/30 overflow-hidden card-hover animate-fade-in"
-                      style={{ animationDelay: `${index * 150}ms` }}
-                    >
-                      <CardContent className="p-0">
-                        <div className="p-4 bg-team-gray/30 flex justify-between items-center border-b border-team-gray/30">
-                          <div className="flex items-center">
-                            <Calendar className="h-5 w-5 text-team-silver mr-2" />
-                            <span className="text-team-white font-medium">{formatDate(match.match_date)}</span>
-                          </div>
-                          <div className="px-3 py-1 rounded bg-team-silver/20 text-team-silver text-sm font-semibold">
-                            {match.home_team_id === '9674a0af-661e-4dbb-be75-2e5f72c1dc91' ? 'HOME' : 'AWAY'}
-                          </div>
-                        </div>
-                        
-                        <div className="p-6">
-                          <div className="flex items-center justify-between mb-6">
-                            <div className="flex flex-col items-center">
-                              <img 
-                                src={match.home_team?.logo_url || "/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"} 
-                                alt={match.home_team?.name || "Home Team"} 
-                                className="w-16 h-16 object-contain"
-                              />
-                              <span className="text-team-white font-display font-bold mt-2">{match.home_team?.short_name}</span>
-                            </div>
-                            
-                            <div className="text-center">
-                              <span className="text-team-silver font-display text-sm">VS</span>
-                            </div>
-                            
-                            <div className="flex flex-col items-center">
-                              {match.away_team?.logo_url ? (
-                                <img 
-                                  src={match.away_team?.logo_url} 
-                                  alt={match.away_team?.name || "Away Team"} 
-                                  className="w-16 h-16 object-contain"
-                                />
-                              ) : (
-                                <div className="w-16 h-16 bg-team-gray/30 rounded-full flex items-center justify-center">
-                                  <span className="text-2xl font-bold text-team-white">
-                                    {match.away_team?.short_name.split(' ').map(word => word[0]).join('')}
-                                  </span>
-                                </div>
-                              )}
-                              <span className="text-team-white font-display font-bold mt-2">{match.away_team?.short_name}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="border-t border-team-gray/30 pt-4 space-y-3">
-                            <div className="flex items-center">
-                              <Clock className="text-team-silver mr-2 h-5 w-5" />
-                              <span className="text-team-white">{formatTime(match.match_time)}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <MapPin className="text-team-silver mr-2 h-5 w-5" />
-                              <span className="text-team-white">{match.location}</span>
-                            </div>
-                          </div>
-                          
-                          <button className="mt-6 block w-full text-center py-3 bg-team-silver text-team-black font-display font-semibold rounded hover:bg-team-white transition-colors duration-300">
-                            Match Details
-                          </button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-team-darkgray rounded-lg border border-team-gray/30">
-                  <p className="text-xl text-team-silver">No upcoming matches scheduled.</p>
-                </div>
-              )}
+              <MatchesGrid 
+                matches={filteredUpcomingMatches} 
+                isPast={false}
+              />
             </TabsContent>
             
             <TabsContent value="past" className="mt-0">
-              {filteredPastMatches.length > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {filteredPastMatches.map((match: Match, index: number) => (
-                    <Card 
-                      key={match.id} 
-                      className="bg-team-darkgray border-team-gray/30 overflow-hidden card-hover animate-fade-in"
-                      style={{ animationDelay: `${index * 150}ms` }}
-                    >
-                      <CardContent className="p-0">
-                        <div className="p-4 bg-team-gray/30 flex justify-between items-center border-b border-team-gray/30">
-                          <div className="flex items-center">
-                            <Calendar className="h-5 w-5 text-team-silver mr-2" />
-                            <span className="text-team-white font-medium">{formatDate(match.match_date)}</span>
-                          </div>
-                          <div 
-                            className={`px-3 py-1 rounded text-sm font-semibold ${
-                              match.home_score !== null && match.away_score !== null ? (
-                                match.home_team_id === '9674a0af-661e-4dbb-be75-2e5f72c1dc91' ? (
-                                  match.home_score > match.away_score 
-                                    ? 'bg-green-900/20 text-green-400' 
-                                    : match.home_score === match.away_score 
-                                      ? 'bg-team-gray/20 text-team-silver'
-                                      : 'bg-red-900/20 text-red-400'
-                                ) : (
-                                  match.away_score > match.home_score 
-                                    ? 'bg-green-900/20 text-green-400' 
-                                    : match.home_score === match.away_score 
-                                      ? 'bg-team-gray/20 text-team-silver' 
-                                      : 'bg-red-900/20 text-red-400'
-                                )
-                              ) : 'bg-team-gray/20 text-team-silver'
-                            }`}
-                          >
-                            {match.home_score !== null && match.away_score !== null 
-                              ? `${match.home_score}-${match.away_score}` 
-                              : 'No Score'}
-                          </div>
-                        </div>
-                        
-                        <div className="p-6">
-                          <div className="flex items-center justify-between mb-6">
-                            <div className="flex flex-col items-center">
-                              <img 
-                                src={match.home_team?.logo_url || "/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"}
-                                alt={match.home_team?.name || "Home Team"} 
-                                className="w-16 h-16 object-contain"
-                              />
-                              <span className="text-team-white font-display font-bold mt-2">{match.home_team?.short_name}</span>
-                            </div>
-                            
-                            <div className="text-center">
-                              <span className="text-team-silver font-display text-sm">VS</span>
-                            </div>
-                            
-                            <div className="flex flex-col items-center">
-                              {match.away_team?.logo_url ? (
-                                <img 
-                                  src={match.away_team?.logo_url} 
-                                  alt={match.away_team?.name || "Away Team"} 
-                                  className="w-16 h-16 object-contain"
-                                />
-                              ) : (
-                                <div className="w-16 h-16 bg-team-gray/30 rounded-full flex items-center justify-center">
-                                  <span className="text-2xl font-bold text-team-white">
-                                    {match.away_team?.short_name.split(' ').map(word => word[0]).join('')}
-                                  </span>
-                                </div>
-                              )}
-                              <span className="text-team-white font-display font-bold mt-2">{match.away_team?.short_name}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="border-t border-team-gray/30 pt-4 space-y-3">
-                            <div className="flex items-center">
-                              <Clock className="text-team-silver mr-2 h-5 w-5" />
-                              <span className="text-team-white">{formatTime(match.match_time)}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <MapPin className="text-team-silver mr-2 h-5 w-5" />
-                              <span className="text-team-white">{match.location}</span>
-                            </div>
-                          </div>
-                          
-                          <button className="mt-6 block w-full text-center py-3 bg-team-gray text-team-white font-display font-semibold rounded hover:bg-team-silver hover:text-team-black transition-colors duration-300">
-                            View Recap
-                          </button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-team-darkgray rounded-lg border border-team-gray/30">
-                  <p className="text-xl text-team-silver">No past matches to display.</p>
-                </div>
-              )}
+              <MatchesGrid 
+                matches={filteredPastMatches} 
+                isPast={true}
+              />
             </TabsContent>
           </Tabs>
         </>

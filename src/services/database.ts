@@ -103,6 +103,8 @@ export async function getUpcomingMatches() {
         away_team:teams!away_team_id(*)
       `)
       .gte('match_date', today)
+      .is('home_score', null) // Only matches with no score yet
+      .is('away_score', null) // Only matches with no score yet
       .order('match_date', { ascending: true });
       
     if (error) throw error;
@@ -140,8 +142,6 @@ export async function getNextMatch() {
 
 export async function getPastMatches() {
   try {
-    const today = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
-    
     const { data, error } = await supabase
       .from('matches')
       .select(`
@@ -149,7 +149,8 @@ export async function getPastMatches() {
         home_team:teams!home_team_id(*),
         away_team:teams!away_team_id(*)
       `)
-      .lt('match_date', today)
+      .not('home_score', 'is', null) // Matches that have scores recorded
+      .not('away_score', 'is', null) // Matches that have scores recorded
       .order('match_date', { ascending: false });
       
     if (error) throw error;

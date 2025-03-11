@@ -39,29 +39,25 @@ const MatchCard = ({ match, isPast = false, index }: MatchCardProps) => {
             <Calendar className="h-5 w-5 text-team-silver mr-2" />
             <span className="text-team-white font-medium">{formatDate(match.match_date)}</span>
           </div>
-          {isPast ? (
+          {isPast && match.home_score !== null && match.away_score !== null ? (
             <div 
               className={`px-3 py-1 rounded text-sm font-semibold ${
-                match.home_score !== null && match.away_score !== null ? (
-                  isHomeGame ? (
-                    match.home_score > match.away_score 
-                      ? 'bg-green-900/20 text-green-400' 
-                      : match.home_score === match.away_score 
-                        ? 'bg-team-gray/20 text-team-silver'
-                        : 'bg-red-900/20 text-red-400'
-                  ) : (
-                    match.away_score > match.home_score 
-                      ? 'bg-green-900/20 text-green-400' 
-                      : match.home_score === match.away_score 
-                        ? 'bg-team-gray/20 text-team-silver' 
-                        : 'bg-red-900/20 text-red-400'
-                  )
-                ) : 'bg-team-gray/20 text-team-silver'
+                isHomeGame ? (
+                  match.home_score > match.away_score 
+                    ? 'bg-green-900/20 text-green-400' 
+                    : match.home_score === match.away_score 
+                      ? 'bg-team-gray/20 text-team-silver'
+                      : 'bg-red-900/20 text-red-400'
+                ) : (
+                  match.away_score > match.home_score 
+                    ? 'bg-green-900/20 text-green-400' 
+                    : match.home_score === match.away_score 
+                      ? 'bg-team-gray/20 text-team-silver' 
+                      : 'bg-red-900/20 text-red-400'
+                )
               }`}
             >
-              {match.home_score !== null && match.away_score !== null 
-                ? `${match.home_score}-${match.away_score}` 
-                : 'No Score'}
+              {`${match.home_score}-${match.away_score}`}
             </div>
           ) : (
             <div className="px-3 py-1 rounded bg-team-silver/20 text-team-silver text-sm font-semibold">
@@ -113,15 +109,6 @@ const MatchCard = ({ match, isPast = false, index }: MatchCardProps) => {
               <span className="text-team-white">{match.location}</span>
             </div>
           </div>
-          
-          <button className={`mt-6 block w-full text-center py-3 ${
-            isPast 
-              ? 'bg-team-gray text-team-white hover:bg-team-silver hover:text-team-black' 
-              : 'bg-team-silver text-team-black hover:bg-team-white'
-            } font-display font-semibold rounded transition-colors duration-300`}
-          >
-            {isPast ? 'View Recap' : 'Match Details'}
-          </button>
         </div>
       </CardContent>
     </Card>

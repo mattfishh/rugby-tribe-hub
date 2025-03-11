@@ -199,109 +199,162 @@ const CasinoPage = () => {
       const dealerScore = calculateHandValue(newDealerHand);
       const dealerVisibleScore = calculateHandValue([dCard1]); // Score of visible card only
       
-      if (playerScore === 21 && dealerScore === 21) {
-        // Both have blackjack - push
-        revealDealerCard();
-        setResult('push');
-        setMessage("Both have Blackjack! It's a push.");
-        setBankroll(prev => prev); // No change
-        setGameState('gameOver');
-      } else if (playerScore === 21) {
-        // Player has blackjack
-        revealDealerCard();
-        setResult('blackjack');
-        setMessage('Blackjack! You win 3:2');
-        setBankroll(prev => prev + Math.floor(currentBet * 1.5));
-        setGameState('gameOver');
-      } else if (dealerScore === 21) {
-        // Dealer has blackjack
-        revealDealerCard();
-        setResult('lose');
-        setMessage('Dealer has Blackjack! You lose.');
-        setBankroll(prev => prev - currentBet);
-        setGameState('gameOver');
+      // Check for natural blackjack (21 with first two cards)
+      if (playerScore === 21) {
+        // Reveal dealer's hidden card
+        const updatedDealerHand = newDealerHand.map(card => ({ ...card, hidden: false }));
+        setDealerHand(updatedDealerHand);
+        
+        if (dealerScore === 21) {
+          // Both have blackjack - it's a push
+          setMessage("Both have Blackjack! It's a push.");
+          setResult('push');
+          setBankroll(prev => prev + currentBet); // Return the bet
+          setGameState('gameOver');
+        } else {
+          // Player has blackjack, dealer doesn't - player wins 3:2
+          const blackjackPayout = currentBet * 1.5;
+          setMessage(`Blackjack! You win ${blackjackPayout.toFixed(2)}!`);
+          setResult('win');
+          setBankroll(prev => prev + currentBet + blackjackPayout);
+          setGameState('gameOver');
+        }
       }
     }, 500);
   };
 
   // Player hits - improved to deal from deck
   const hit = () => {
-    // Take the next card from the deck
-    const [newCard, ...remainingDeck] = deck;
-    setDeck(remainingDeck);
-    
-    const newHand = [...playerHand, { ...newCard }];
+    const newCard = dealCard();
+    const newHand = [...playerHand, newCard];
     setPlayerHand(newHand);
     
-    const handValue = calculateHandValue(newHand);
+    const newScore = calculateHandValue(newHand);
     
-    if (handValue > 21) {
+    if (newScore > 21) {
       // Player busts
-      revealDealerCard();
-      setResult('bust');
-      setMessage('Bust! You lose.');
-      setBankroll(prev => prev - currentBet);
+      setMessage(`Bust! You went over with ${newScore}.`);
+      setResult('lose');
       setGameState('gameOver');
-    } else if (handValue === 21) {
+      
+      // Reveal dealer's hidden card
+      const revealedDealerHand = dealerHand.map(card => ({ ...card, hidden: false }));
+      setDealerHand(revealedDealerHand);
+    } else if (newScore === 21) {
       // Player has 21, automatically stand
-      stand();
+      // We need to ensure the state is updated before standing
+      setPlayerHand(newHand);
+      
+      // Use a callback to ensure the state is updated before standing
+      setTimeout(() => {
+        // Call stand with the updated hand
+        const updatedPlayerHand = newHand;
+        const revealedDealerHand = dealerHand.map(card => ({ ...card, hidden: false }));
+        setDealerHand(revealedDealerHand);
+        
+        // Dealer's turn
+        let currentDealerHand = [...revealedDealerHand];
+        let dealerScore = calculateHandValue(currentDealerHand);
+        
+        const dealerPlay = () => {
+          if (dealerScore < 17) {
+            const newCard = dealCard();
+            currentDealerHand = [...currentDealerHand, newCard];
+            setDealerHand(currentDealerHand);
+            dealerScore = calculateHandValue(currentDealerHand);
+            
+            setTimeout(() => {
+              dealerPlay();
+            }, 700);
+          } else {
+            // Determine the winner
+            const playerScore = calculateHandValue(updatedPlayerHand);
+            
+            if (dealerScore > 21) {
+              // Dealer busts
+              setMessage(`Dealer busts with ${dealerScore}! You win $${currentBet}!`);
+              setResult('win');
+              setBankroll(prev => prev + currentBet * 2);
+            } else if (playerScore > dealerScore) {
+              // Player wins
+              setMessage(`You win with ${playerScore} vs dealer's ${dealerScore}! +$${currentBet}`);
+              setResult('win');
+              setBankroll(prev => prev + currentBet * 2);
+            } else if (dealerScore > playerScore) {
+              // Dealer wins
+              setMessage(`Dealer wins with ${dealerScore} vs your ${playerScore}.`);
+              setResult('lose');
+            } else {
+              // Push - tie
+              setMessage(`Push! Both have ${playerScore}.`);
+              setResult('push');
+              setBankroll(prev => prev + currentBet);
+            }
+            
+            setGameState('gameOver');
+          }
+        };
+        
+        setTimeout(() => {
+          dealerPlay();
+        }, 700);
+      }, 500);
     }
   };
 
   // Player stands - improved dealer logic with proper card dealing
   const stand = () => {
-    revealDealerCard();
-    setGameState('dealerTurn');
+    // Reveal dealer's hidden card first
+    const revealedDealerHand = dealerHand.map(card => ({ ...card, hidden: false }));
+    setDealerHand(revealedDealerHand);
     
-    setTimeout(() => {
-      let currentDealerHand = [...dealerHand].map(card => ({ ...card, hidden: false }));
-      let dealerScore = calculateHandValue(currentDealerHand);
-      let currentDeck = [...deck];
-      
-      const dealerPlay = async () => {
-        // Dealer must hit until they have at least 17
-        while (dealerScore < 17) {
-          const [newCard, ...remainingDeck] = currentDeck;
-          currentDeck = remainingDeck;
-          
-          currentDealerHand = [...currentDealerHand, { ...newCard, hidden: false }];
-          setDealerHand([...currentDealerHand]);
-          setDeck(currentDeck);
-          
-          dealerScore = calculateHandValue(currentDealerHand);
-          
-          await new Promise(resolve => setTimeout(resolve, 600));
-        }
+    // Dealer's turn
+    let currentDealerHand = [...revealedDealerHand];
+    let dealerScore = calculateHandValue(currentDealerHand);
+    
+    // Dealer must draw until they have at least 17
+    const dealerPlay = () => {
+      if (dealerScore < 17) {
+        const newCard = dealCard();
+        currentDealerHand = [...currentDealerHand, newCard];
+        setDealerHand(currentDealerHand);
+        dealerScore = calculateHandValue(currentDealerHand);
         
+        setTimeout(() => {
+          dealerPlay();
+        }, 700);
+      } else {
+        // Determine the winner
         const playerScore = calculateHandValue(playerHand);
         
-        // Fixed win/loss conditions to properly compare scores
         if (dealerScore > 21) {
           // Dealer busts
+          setMessage(`Dealer busts with ${dealerScore}! You win $${currentBet}!`);
           setResult('win');
-          setMessage('Dealer busts! You win!');
-          setBankroll(prev => prev + currentBet);
+          setBankroll(prev => prev + currentBet * 2);
         } else if (playerScore > dealerScore) {
-          // Player has higher score
+          // Player wins
+          setMessage(`You win with ${playerScore} vs dealer's ${dealerScore}! +$${currentBet}`);
           setResult('win');
-          setMessage('You win!');
-          setBankroll(prev => prev + currentBet);
+          setBankroll(prev => prev + currentBet * 2);
         } else if (dealerScore > playerScore) {
-          // Dealer has higher score
+          // Dealer wins
+          setMessage(`Dealer wins with ${dealerScore} vs your ${playerScore}.`);
           setResult('lose');
-          setMessage('Dealer wins!');
-          setBankroll(prev => prev - currentBet);
         } else {
-          // Equal scores - push
+          // Push - tie
+          setMessage(`Push! Both have ${playerScore}.`);
           setResult('push');
-          setMessage("It's a push.");
+          setBankroll(prev => prev + currentBet);
         }
         
         setGameState('gameOver');
-      };
-      
+      }
+    };
+    
+    setTimeout(() => {
       dealerPlay();
-    }, 600);
+    }, 700);
   };
 
   // Reveal dealer's hidden card - improved to create new objects

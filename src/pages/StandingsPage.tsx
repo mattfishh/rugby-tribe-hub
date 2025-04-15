@@ -25,7 +25,7 @@ import {
 const StandingsPage = () => {
   const [selectedSeason, setSelectedSeason] = useState('2025');
   
-  const { data: standings, isLoading } = useQuery({
+  const { data: standingsData, isLoading } = useQuery({
     queryKey: ['standings', selectedSeason],
     queryFn: () => getTeamStandings(selectedSeason)
   });
@@ -41,6 +41,19 @@ const StandingsPage = () => {
     if (!player) return 0;
     return (player.tries * 5) + (player.conversions * 2) + (player.penalties * 3);
   };
+
+  const sortedStandings = standingsData
+    ? [...standingsData].sort((a, b) => {
+        // Primary sort: total points (descending)
+        if (b.total_points !== a.total_points) {
+          return b.total_points - a.total_points;
+        }
+        // Secondary sort: point differential (descending)
+        const diffA = a.points_for - a.points_against;
+        const diffB = b.points_for - b.points_against;
+        return diffB - diffA;
+      })
+    : [];
   
   return (
     <div className="page-container">
@@ -73,7 +86,7 @@ const StandingsPage = () => {
       ) : (
         <Card className="bg-team-darkgray border-team-gray/30">
           <CardContent className="p-6">
-            {standings && standings.length > 0 ? (
+            {sortedStandings && sortedStandings.length > 0 ? (
               <>
                 <div className="overflow-x-auto">
                   <table className="w-full text-team-white">
@@ -87,12 +100,11 @@ const StandingsPage = () => {
                         <th className="py-3 px-4">PF</th>
                         <th className="py-3 px-4">PA</th>
                         <th className="py-3 px-4">+/-</th>
-                        <th className="py-3 px-4">BP</th>
                         <th className="py-3 px-4">Pts</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {standings.map((team, index) => (
+                      {sortedStandings.map((team, index) => (
                         <tr 
                           key={team.team_id} 
                           className={`border-b border-team-gray/30 ${team.team?.is_home_team ? 'bg-team-gray/20' : ''}`}
@@ -115,7 +127,6 @@ const StandingsPage = () => {
                           <td className="py-3 px-4 text-center">{team.points_for}</td>
                           <td className="py-3 px-4 text-center">{team.points_against}</td>
                           <td className="py-3 px-4 text-center">{team.points_for - team.points_against}</td>
-                          <td className="py-3 px-4 text-center">{team.bonus_points}</td>
                           <td className="py-3 px-4 text-center font-bold">{team.total_points}</td>
                         </tr>
                       ))}
@@ -125,7 +136,7 @@ const StandingsPage = () => {
                 
                 <div className="mt-6 text-team-silver text-sm">
                   <p><strong>P</strong> = Played, <strong>W</strong> = Won, <strong>D</strong> = Drawn, <strong>L</strong> = Lost</p>
-                  <p><strong>PF</strong> = Points For, <strong>PA</strong> = Points Against, <strong>BP</strong> = Bonus Points, <strong>Pts</strong> = Total Points</p>
+                  <p><strong>PF</strong> = Points For, <strong>PA</strong> = Points Against, <strong>Pts</strong> = Total Points</p>
                 </div>
               </>
             ) : (

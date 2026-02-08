@@ -35,10 +35,10 @@ const StandingsPage = () => {
             value={selectedSeason}
             onValueChange={setSelectedSeason}
           >
-            <SelectTrigger className="bg-team-darkgray border-team-gray/30 text-team-white">
+            <SelectTrigger className="bg-team-darkgray border-team-gold/20 text-team-cream font-body">
               <SelectValue placeholder="Select Season" />
             </SelectTrigger>
-            <SelectContent className="bg-team-darkgray border-team-gray/30 text-team-white">
+            <SelectContent className="bg-team-darkgray border-team-gold/20 text-team-cream">
               <SelectItem value="2026">2026 Season</SelectItem>
               <SelectItem value="2025">2025 Season</SelectItem>
               <SelectItem value="2024">2024 Season</SelectItem>
@@ -50,33 +50,32 @@ const StandingsPage = () => {
       {isLoading ? (
         <LoadingSpinner />
       ) : (
-        <Card className="bg-team-darkgray border-team-gray/30">
-          <CardContent className="p-6">
+        <div className="vintage-card p-6">
             {standingsData && standingsData.length > 0 ? (
               <>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-team-white">
+                  <table className="w-full text-team-cream font-body">
                     <thead>
-                      <tr className="border-b border-team-gray/30">
-                        <th className="text-left py-3 px-4">Team</th>
-                        <th className="py-3 px-4">P</th>
-                        <th className="py-3 px-4">W</th>
-                        <th className="py-3 px-4">D</th>
-                        <th className="py-3 px-4">L</th>
-                        <th className="py-3 px-4">PF</th>
-                        <th className="py-3 px-4">PA</th>
-                        <th className="py-3 px-4">+/-</th>
-                        <th className="py-3 px-4">Pts</th>
+                      <tr className="border-b border-team-gold/30">
+                        <th className="text-left py-3 px-4 font-headline text-xs tracking-[0.15em] uppercase text-team-gold">Team</th>
+                        <th className="py-3 px-4 font-headline text-xs tracking-[0.15em] uppercase text-team-gold">P</th>
+                        <th className="py-3 px-4 font-headline text-xs tracking-[0.15em] uppercase text-team-gold">W</th>
+                        <th className="py-3 px-4 font-headline text-xs tracking-[0.15em] uppercase text-team-gold">D</th>
+                        <th className="py-3 px-4 font-headline text-xs tracking-[0.15em] uppercase text-team-gold">L</th>
+                        <th className="py-3 px-4 font-headline text-xs tracking-[0.15em] uppercase text-team-gold">PF</th>
+                        <th className="py-3 px-4 font-headline text-xs tracking-[0.15em] uppercase text-team-gold">PA</th>
+                        <th className="py-3 px-4 font-headline text-xs tracking-[0.15em] uppercase text-team-gold">+/-</th>
+                        <th className="py-3 px-4 font-headline text-xs tracking-[0.15em] uppercase text-team-gold">Pts</th>
                       </tr>
                     </thead>
                     <tbody>
                       {standingsData.map((standing, index) => (
                         <tr
                           key={standing._id}
-                          className={`border-b border-team-gray/30 ${standing.team?.isHomeTeam ? 'bg-team-gray/20' : ''}`}
+                          className={`border-b border-team-gold/10 ${standing.team?.isHomeTeam ? 'bg-team-gold/5' : ''}`}
                         >
                           <td className="text-left py-3 px-4 font-medium flex items-center">
-                            <span className="mr-2">{index + 1}.</span>
+                            <span className="mr-2 text-team-gold/60">{index + 1}.</span>
                             {standing.team?.logoUrl && (
                               <img
                                 src={standing.team.logoUrl}
@@ -93,14 +92,14 @@ const StandingsPage = () => {
                           <td className="py-3 px-4 text-center">{standing.pointsFor}</td>
                           <td className="py-3 px-4 text-center">{standing.pointsAgainst}</td>
                           <td className="py-3 px-4 text-center">{standing.pointsFor - standing.pointsAgainst}</td>
-                          <td className="py-3 px-4 text-center font-bold">{standing.totalPoints}</td>
+                          <td className="py-3 px-4 text-center font-bold text-team-gold">{standing.totalPoints}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
-                <div className="mt-6 text-team-silver text-sm">
+                <div className="mt-6 text-team-silver text-sm font-body italic">
                   <p><strong>P</strong> = Played, <strong>W</strong> = Won, <strong>D</strong> = Drawn, <strong>L</strong> = Lost</p>
                   <p><strong>PF</strong> = Points For, <strong>PA</strong> = Points Against, <strong>Pts</strong> = Total Points</p>
                 </div>
@@ -108,19 +107,18 @@ const StandingsPage = () => {
             ) : (
               <div className="text-center py-12 text-team-silver">
                 <p className="text-xl font-display mb-2">No standings data available for {selectedSeason}</p>
-                <p>Standings will appear here once matches have been played and recorded.</p>
+                <p className="font-body italic">Standings will appear here once matches have been played and recorded.</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+        </div>
       )}
 
-      <div className="mt-12 p-6 bg-team-darkgray border border-team-gray/30 rounded-lg">
-        <h2 className="text-2xl font-display font-bold text-team-white mb-4">Season Reports</h2>
-        <p className="text-team-silver mb-4">
+      <div className="mt-12 vintage-card p-8">
+        <h2 className="text-2xl font-display font-bold text-team-cream mb-4">Season Reports</h2>
+        <p className="text-team-silver mb-4 font-body">
           Detailed statistics and analytics for the {selectedSeason} season are available for download.
         </p>
-        <button className="px-6 py-3 bg-team-silver text-team-black font-display font-semibold rounded hover:bg-team-white transition-colors duration-300">
+        <button className="vintage-btn-primary">
           Download Full Stats
         </button>
       </div>

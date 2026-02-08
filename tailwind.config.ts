@@ -20,8 +20,10 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Inter', 'sans-serif'],
-				display: ['Rajdhani', 'sans-serif'],
+				sans: ['Cormorant Garamond', 'Georgia', 'serif'],
+				body: ['Cormorant Garamond', 'Georgia', 'serif'],
+				display: ['Playfair Display', 'Georgia', 'serif'],
+				headline: ['Bebas Neue', 'Impact', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -58,12 +60,14 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				team: {
-					black: '#121212',
-					darkgray: '#1E1E1E',
-					gray: '#333333',
-					lightgray: '#888888',
-					silver: '#C0C0C0',
-					white: '#FFFFFF',
+					black: '#0F0E0C',
+					darkgray: '#1A1815',
+					gray: '#2E2B26',
+					lightgray: '#7A7468',
+					silver: '#C0AD8E',
+					gold: '#C0AD8E',
+					cream: '#EDE8DF',
+					white: '#EDE8DF',
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',

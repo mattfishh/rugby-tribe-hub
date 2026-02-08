@@ -49,16 +49,16 @@ const SchedulePage = () => {
       ) : (
         <>
           <Tabs defaultValue="upcoming" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="mb-8 bg-team-darkgray">
+            <TabsList className="mb-8 bg-team-darkgray border border-team-gold/20">
               <TabsTrigger
                 value="upcoming"
-                className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
+                className="font-headline text-xs tracking-[0.15em] uppercase data-[state=active]:bg-team-gray data-[state=active]:text-team-cream"
               >
                 Upcoming Matches
               </TabsTrigger>
               <TabsTrigger
                 value="past"
-                className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
+                className="font-headline text-xs tracking-[0.15em] uppercase data-[state=active]:bg-team-gray data-[state=active]:text-team-cream"
               >
                 Past Results
               </TabsTrigger>

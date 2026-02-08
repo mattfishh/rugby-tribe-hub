@@ -34,8 +34,8 @@ const MatchesGrid = ({ matches, isPast = false }: MatchesGridProps) => {
 
   if (matches.length === 0) {
     return (
-      <div className="text-center py-12 bg-team-darkgray rounded-lg border border-team-gray/30">
-        <p className="text-xl text-team-silver">
+      <div className="text-center py-12 vintage-card">
+        <p className="text-xl text-team-silver font-body italic">
           {isPast ? 'No past matches to display.' : 'No upcoming matches scheduled.'}
         </p>
       </div>

@@ -1,19 +1,35 @@
-
 import React from 'react';
-import type { Match } from '@/types/database';
 import MatchCard from './MatchCard';
 import { Button } from '@/components/ui/button';
-import { updateTeamStandingsFromMatches } from '@/services/database';
+import { useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import { RefreshCw } from 'lucide-react';
 
+type MatchWithTeams = {
+  _id: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  matchDate: string;
+  matchTime?: string;
+  location?: string;
+  homeScore?: number;
+  awayScore?: number;
+  status: string;
+  season: string;
+  homeTeam: { _id: string; name: string; shortName: string; logoUrl?: string; isHomeTeam: boolean } | null;
+  awayTeam: { _id: string; name: string; shortName: string; logoUrl?: string; isHomeTeam: boolean } | null;
+};
+
 type MatchesGridProps = {
-  matches: Match[];
+  matches: MatchWithTeams[];
   isPast?: boolean;
 };
 
 const MatchesGrid = ({ matches, isPast = false }: MatchesGridProps) => {
+  const updateStandings = useMutation(api.stats.updateStandingsFromMatches);
+
   const handleUpdateStandings = async () => {
-    await updateTeamStandingsFromMatches();
+    await updateStandings({ season: "2025" });
   };
 
   if (matches.length === 0) {
@@ -26,29 +42,24 @@ const MatchesGrid = ({ matches, isPast = false }: MatchesGridProps) => {
     );
   }
 
-  // Sort matches by date and time
   const sortedMatches = [...matches].sort((a, b) => {
-    // First compare by date
-    const dateComparison = new Date(a.match_date).getTime() - new Date(b.match_date).getTime();
+    const dateComparison = new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime();
     if (dateComparison !== 0) {
-      return isPast ? -dateComparison : dateComparison; // Reverse order for past matches
+      return isPast ? -dateComparison : dateComparison;
     }
-    
-    // If dates are the same, compare by time
-    const aTime = a.match_time || '00:00:00';
-    const bTime = b.match_time || '00:00:00';
-    
-    return isPast 
-      ? bTime.localeCompare(aTime) // Latest time first for past matches
-      : aTime.localeCompare(bTime); // Earliest time first for upcoming matches
+    const aTime = a.matchTime || '00:00';
+    const bTime = b.matchTime || '00:00';
+    return isPast
+      ? bTime.localeCompare(aTime)
+      : aTime.localeCompare(bTime);
   });
 
   return (
     <div>
       {isPast && (
         <div className="mb-6 flex justify-end">
-          <Button 
-            onClick={handleUpdateStandings} 
+          <Button
+            onClick={handleUpdateStandings}
             className="flex items-center gap-2 bg-team-accent hover:bg-team-accent/80"
           >
             <RefreshCw size={16} />
@@ -56,14 +67,14 @@ const MatchesGrid = ({ matches, isPast = false }: MatchesGridProps) => {
           </Button>
         </div>
       )}
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {sortedMatches.map((match, index) => (
-          <MatchCard 
-            key={match.id} 
-            match={match} 
-            isPast={isPast} 
-            index={index} 
+          <MatchCard
+            key={match._id}
+            match={match}
+            isPast={isPast}
+            index={index}
           />
         ))}
       </div>

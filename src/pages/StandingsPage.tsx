@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, TrendingUp, LineChart, Info } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useQuery } from '@tanstack/react-query';
-import { getTeamStandings, getPlayerStats } from '@/services/database';
+import { useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 import { Helmet } from 'react-helmet-async';
 import LoadingSpinner from '@/components/schedule/LoadingSpinner';
 import {
@@ -24,47 +14,22 @@ import {
 
 const StandingsPage = () => {
   const [selectedSeason, setSelectedSeason] = useState('2025');
-  
-  const { data: standingsData, isLoading } = useQuery({
-    queryKey: ['standings', selectedSeason],
-    queryFn: () => getTeamStandings(selectedSeason)
-  });
-  
-  const { data: playerStats, isLoading: statsLoading } = useQuery({
-    queryKey: ['playerStats', selectedSeason],
-    queryFn: () => getPlayerStats(selectedSeason)
-  });
-  
-  const isLoadingCombined = isLoading || statsLoading;
-  
-  const calculatePoints = (player: any) => {
-    if (!player) return 0;
-    return (player.tries * 5) + (player.conversions * 2) + (player.penalties * 3);
-  };
 
-  const sortedStandings = standingsData
-    ? [...standingsData].sort((a, b) => {
-        // Primary sort: total points (descending)
-        if (b.total_points !== a.total_points) {
-          return b.total_points - a.total_points;
-        }
-        // Secondary sort: point differential (descending)
-        const diffA = a.points_for - a.points_against;
-        const diffB = b.points_for - b.points_against;
-        return diffB - diffA;
-      })
-    : [];
-  
+  const standingsData = useQuery(api.stats.getTeamStandings, { season: selectedSeason });
+  const playerStats = useQuery(api.stats.getPlayerStats, { season: selectedSeason });
+
+  const isLoading = standingsData === undefined || playerStats === undefined;
+
   return (
     <div className="page-container">
       <Helmet>
         <title>Standings | Tavistock Trash Pandas Rugby</title>
         <meta name="description" content="Current season standings for the Tavistock Trash Pandas Rugby team and their league." />
       </Helmet>
-      
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="section-title mb-0">League Standings</h1>
-        
+
         <div className="w-48">
           <Select
             value={selectedSeason}
@@ -74,19 +39,20 @@ const StandingsPage = () => {
               <SelectValue placeholder="Select Season" />
             </SelectTrigger>
             <SelectContent className="bg-team-darkgray border-team-gray/30 text-team-white">
+              <SelectItem value="2026">2026 Season</SelectItem>
               <SelectItem value="2025">2025 Season</SelectItem>
               <SelectItem value="2024">2024 Season</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
-      
-      {isLoadingCombined ? (
+
+      {isLoading ? (
         <LoadingSpinner />
       ) : (
         <Card className="bg-team-darkgray border-team-gray/30">
           <CardContent className="p-6">
-            {sortedStandings && sortedStandings.length > 0 ? (
+            {standingsData && standingsData.length > 0 ? (
               <>
                 <div className="overflow-x-auto">
                   <table className="w-full text-team-white">
@@ -104,36 +70,36 @@ const StandingsPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {sortedStandings.map((team, index) => (
-                        <tr 
-                          key={team.team_id} 
-                          className={`border-b border-team-gray/30 ${team.team?.is_home_team ? 'bg-team-gray/20' : ''}`}
+                      {standingsData.map((standing, index) => (
+                        <tr
+                          key={standing._id}
+                          className={`border-b border-team-gray/30 ${standing.team?.isHomeTeam ? 'bg-team-gray/20' : ''}`}
                         >
                           <td className="text-left py-3 px-4 font-medium flex items-center">
                             <span className="mr-2">{index + 1}.</span>
-                            {team.team?.logo_url && (
-                              <img 
-                                src={team.team.logo_url} 
-                                alt={team.team?.name} 
+                            {standing.team?.logoUrl && (
+                              <img
+                                src={standing.team.logoUrl}
+                                alt={standing.team?.name}
                                 className="w-6 h-6 mr-2 object-contain"
                               />
                             )}
-                            {team.team?.name}
+                            {standing.team?.name}
                           </td>
-                          <td className="py-3 px-4 text-center">{team.played}</td>
-                          <td className="py-3 px-4 text-center">{team.won}</td>
-                          <td className="py-3 px-4 text-center">{team.drawn}</td>
-                          <td className="py-3 px-4 text-center">{team.lost}</td>
-                          <td className="py-3 px-4 text-center">{team.points_for}</td>
-                          <td className="py-3 px-4 text-center">{team.points_against}</td>
-                          <td className="py-3 px-4 text-center">{team.points_for - team.points_against}</td>
-                          <td className="py-3 px-4 text-center font-bold">{team.total_points}</td>
+                          <td className="py-3 px-4 text-center">{standing.played}</td>
+                          <td className="py-3 px-4 text-center">{standing.won}</td>
+                          <td className="py-3 px-4 text-center">{standing.drawn}</td>
+                          <td className="py-3 px-4 text-center">{standing.lost}</td>
+                          <td className="py-3 px-4 text-center">{standing.pointsFor}</td>
+                          <td className="py-3 px-4 text-center">{standing.pointsAgainst}</td>
+                          <td className="py-3 px-4 text-center">{standing.pointsFor - standing.pointsAgainst}</td>
+                          <td className="py-3 px-4 text-center font-bold">{standing.totalPoints}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                
+
                 <div className="mt-6 text-team-silver text-sm">
                   <p><strong>P</strong> = Played, <strong>W</strong> = Won, <strong>D</strong> = Drawn, <strong>L</strong> = Lost</p>
                   <p><strong>PF</strong> = Points For, <strong>PA</strong> = Points Against, <strong>Pts</strong> = Total Points</p>
@@ -148,7 +114,7 @@ const StandingsPage = () => {
           </CardContent>
         </Card>
       )}
-      
+
       <div className="mt-12 p-6 bg-team-darkgray border border-team-gray/30 rounded-lg">
         <h2 className="text-2xl font-display font-bold text-team-white mb-4">Season Reports</h2>
         <p className="text-team-silver mb-4">

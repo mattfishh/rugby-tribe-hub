@@ -1,47 +1,19 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Clock } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from 'convex/react';
 import { format, parseISO } from 'date-fns';
-import type { Match } from '@/types/database';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '../../../convex/_generated/api';
 
 const HeroSection = () => {
-  // Query the next match that involves Tavistock
-  const { data: nextMatch, isLoading } = useQuery({
-    queryKey: ['next-match'],
-    queryFn: async () => {
-      const homeTeamId = '9674a0af-661e-4dbb-be75-2e5f72c1dc91'; // Tavistock Trash Pandas ID
-      const today = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
-      
-      const { data, error } = await supabase
-        .from('matches')
-        .select(`
-          *,
-          home_team:teams!home_team_id(*),
-          away_team:teams!away_team_id(*)
-        `)
-        .or(`home_team_id.eq.${homeTeamId},away_team_id.eq.${homeTeamId}`)
-        .gte('match_date', today)
-        .order('match_date', { ascending: true })
-        .limit(1)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching next match:', error);
-        return null;
-      }
-      
-      return data as Match;
-    }
-  });
-  
+  const nextMatch = useQuery(api.matches.getNextMatch);
+  const isLoading = nextMatch === undefined;
+
   const formatDate = (dateString: string) => {
     return format(parseISO(dateString), 'MMMM d, yyyy');
   };
-  
-  const formatTime = (timeString: string | null) => {
+
+  const formatTime = (timeString: string | undefined) => {
     if (!timeString) return '';
     const [hours, minutes] = timeString.split(':');
     const hour = parseInt(hours, 10);
@@ -49,7 +21,7 @@ const HeroSection = () => {
     const formattedHour = hour % 12 || 12;
     return `${formattedHour}:${minutes} ${ampm}`;
   };
-  
+
   const renderNextMatch = () => {
     if (isLoading) {
       return (
@@ -58,7 +30,7 @@ const HeroSection = () => {
         </div>
       );
     }
-    
+
     if (!nextMatch) {
       return (
         <div className="text-center py-6">
@@ -66,63 +38,63 @@ const HeroSection = () => {
         </div>
       );
     }
-    
+
     return (
       <div className="animate-fade-in">
         <div className="flex items-center justify-between mb-4">
           <div className="flex flex-col items-center">
-            <img 
-              src={nextMatch.home_team?.logo_url || "/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"} 
-              alt={nextMatch.home_team?.name || "Home Team"} 
+            <img
+              src={nextMatch.homeTeam?.logoUrl || "/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"}
+              alt={nextMatch.homeTeam?.name || "Home Team"}
               className="w-16 h-16 object-contain"
             />
-            <span className="text-team-white font-display font-bold mt-2">{nextMatch.home_team?.short_name}</span>
+            <span className="text-team-white font-display font-bold mt-2">{nextMatch.homeTeam?.shortName}</span>
           </div>
-          
+
           <div className="text-center">
             <span className="text-4xl font-display font-bold text-team-silver">VS</span>
           </div>
-          
+
           <div className="flex flex-col items-center">
-            {nextMatch.away_team?.logo_url ? (
-              <img 
-                src={nextMatch.away_team?.logo_url} 
-                alt={nextMatch.away_team?.name || "Away Team"} 
+            {nextMatch.awayTeam?.logoUrl ? (
+              <img
+                src={nextMatch.awayTeam?.logoUrl}
+                alt={nextMatch.awayTeam?.name || "Away Team"}
                 className="w-16 h-16 object-contain"
               />
             ) : (
               <div className="w-16 h-16 bg-team-gray/30 rounded-full flex items-center justify-center">
                 <span className="text-2xl font-bold text-team-white">
-                  {nextMatch.away_team?.short_name.split(' ').map(word => word[0]).join('')}
+                  {nextMatch.awayTeam?.shortName.split(' ').map(word => word[0]).join('')}
                 </span>
               </div>
             )}
-            <span className="text-team-white font-display font-bold mt-2">{nextMatch.away_team?.short_name}</span>
+            <span className="text-team-white font-display font-bold mt-2">{nextMatch.awayTeam?.shortName}</span>
           </div>
         </div>
-        
+
         <div className="space-y-2 mb-4">
           <div className="flex items-center">
             <Calendar className="text-team-silver mr-2 h-5 w-5" />
-            <span className="text-team-white">{formatDate(nextMatch.match_date)}</span>
+            <span className="text-team-white">{formatDate(nextMatch.matchDate)}</span>
           </div>
           <div className="flex items-center">
             <Clock className="text-team-silver mr-2 h-5 w-5" />
-            <span className="text-team-white">{formatTime(nextMatch.match_time)}</span>
+            <span className="text-team-white">{formatTime(nextMatch.matchTime)}</span>
           </div>
           <div className="flex items-center">
             <MapPin className="text-team-silver mr-2 h-5 w-5" />
             <span className="text-team-white">{nextMatch.location}</span>
           </div>
         </div>
-        
+
         <Link to="/schedule" className="block text-center py-3 bg-team-silver text-team-black font-display font-semibold rounded hover:opacity-90 transition-opacity">
           View Full Schedule
         </Link>
       </div>
     );
   };
-  
+
   return (
     <section className="relative bg-team-black py-16 md:py-24">
       <div className="absolute inset-0 bg-[url('/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png')] bg-center opacity-10"></div>
@@ -144,7 +116,7 @@ const HeroSection = () => {
               </Link>
             </div>
           </div>
-          
+
           <div className="bg-team-darkgray border border-team-gray/30 rounded-lg p-6">
             <h2 className="text-2xl font-display font-bold text-team-white border-b border-team-gray/30 pb-3 mb-4">
               Next Match

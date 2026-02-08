@@ -443,36 +443,36 @@ const CasinoPage = () => {
   const renderCard = (card: PlayingCard) => {
     if (card.hidden) {
       return (
-        <div className="w-32 h-48 bg-team-gray rounded-lg border-2 border-team-silver flex items-center justify-center shadow-md">
-          <div className="w-28 h-44 bg-team-darkgray rounded-md flex items-center justify-center">
-            <img 
-              src="/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png" 
-              alt="Card Back" 
+        <div className="w-32 h-48 bg-team-gray border-2 border-team-gold/30 flex items-center justify-center shadow-md">
+          <div className="w-28 h-44 bg-team-darkgray flex items-center justify-center border border-team-gold/10">
+            <img
+              src="/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"
+              alt="Card Back"
               className="w-16 h-16 object-contain opacity-50"
             />
           </div>
         </div>
       );
     }
-    
+
     const suitSymbol = {
       'hearts': '♥',
       'diamonds': '♦',
       'clubs': '♣',
       'spades': '♠'
     }[card.suit];
-    
-    const suitColor = card.suit === 'hearts' || card.suit === 'diamonds' ? 'text-red-500' : 'text-team-black';
-    
+
+    const suitColor = card.suit === 'hearts' || card.suit === 'diamonds' ? 'text-red-800' : 'text-team-black';
+
     return (
-      <div className="w-32 h-48 bg-white rounded-lg border-2 border-team-gray flex flex-col items-center justify-between p-3 shadow-md">
+      <div className="w-32 h-48 bg-team-cream border-2 border-team-gold/40 flex flex-col items-center justify-between p-3 shadow-md">
         <div className={`text-left w-full ${suitColor}`}>
-          <div className="text-xl font-bold">{card.rank}</div>
+          <div className="text-xl font-display font-bold">{card.rank}</div>
           <div className="text-2xl">{suitSymbol}</div>
         </div>
         <div className={`text-5xl ${suitColor}`}>{suitSymbol}</div>
         <div className={`text-right w-full ${suitColor} rotate-180`}>
-          <div className="text-xl font-bold">{card.rank}</div>
+          <div className="text-xl font-display font-bold">{card.rank}</div>
           <div className="text-2xl">{suitSymbol}</div>
         </div>
       </div>
@@ -596,11 +596,11 @@ const CasinoPage = () => {
         
         {/* Game rules as collapsible accordion - moved above the game */}
         <div className="mb-8">
-          <button 
-            onClick={() => setRulesExpanded(!rulesExpanded)} 
-            className="w-full bg-team-gray/20 border border-team-gray/30 rounded-lg p-4 flex justify-between items-center"
+          <button
+            onClick={() => setRulesExpanded(!rulesExpanded)}
+            className="w-full bg-team-gray/10 border border-team-gold/20 p-4 flex justify-between items-center"
           >
-            <h2 className="text-2xl font-display font-bold text-team-white">How to Play RaccJack</h2>
+            <h2 className="text-sm font-headline tracking-[0.2em] uppercase text-team-gold">How to Play RaccJack</h2>
             {rulesExpanded ? (
               <ChevronUp className="h-6 w-6 text-team-silver" />
             ) : (
@@ -609,9 +609,9 @@ const CasinoPage = () => {
           </button>
           
           {rulesExpanded && (
-            <Card className="bg-team-gray/20 border-t-0 border-team-gray/30 rounded-t-none">
+            <Card className="bg-team-gray/10 border-t-0 border-team-gold/20 rounded-t-none">
               <CardContent className="p-6">
-                <div className="space-y-3 text-team-silver">
+                <div className="space-y-3 text-team-silver font-body">
                   <p>RaccJack is just blackjack, with blackmarket organ dealing to obtain more money.</p>
                   
                   <p>If you don't know how to play blackjack, this might not be the team to support for you. But here are the rules anyways.</p>
@@ -634,11 +634,11 @@ const CasinoPage = () => {
         </div>
         
         {/* Game container */}
-        <div className="bg-team-darkgray rounded-lg p-6 mb-8">
+        <div className="vintage-card p-8 mb-8">
           {/* Bankroll display - fixed position */}
           <div className="h-10 mb-6">
-            <div className="text-xl font-display font-bold text-team-white">
-              Bankroll: ${bankroll}
+            <div className="text-xl font-display font-bold text-team-cream">
+              Bankroll: <span className="text-team-gold">${bankroll}</span>
             </div>
           </div>
           
@@ -702,8 +702,8 @@ const CasinoPage = () => {
           
           {/* Current bet display - always visible */}
           <div className="text-center h-10 mb-4">
-            <div className="text-xl font-display font-bold text-team-white">
-              Current Bet: ${currentBet}
+            <div className="text-xl font-display font-bold text-team-cream">
+              Current Bet: <span className="text-team-gold">${currentBet}</span>
             </div>
           </div>
           
@@ -716,11 +716,11 @@ const CasinoPage = () => {
                   key={value}
                   onClick={() => placeBet(value)}
                   disabled={bankroll < value || gameState !== 'betting'}
-                  className={`w-16 h-16 rounded-full flex items-center justify-center font-bold text-sm
-                    transform transition-all hover:scale-110 active:scale-95
-                    ${value === 25 ? 'bg-green-600 text-white' : 
-                      value === 100 ? 'bg-red-600 text-white' : 
-                      'bg-purple-600 text-white'}
+                  className={`w-16 h-16 rounded-full flex items-center justify-center font-headline text-sm tracking-wider
+                    transform transition-all hover:scale-110 active:scale-95 border-2
+                    ${value === 25 ? 'bg-team-gray border-team-gold/40 text-team-cream' :
+                      value === 100 ? 'bg-team-gray border-team-gold/60 text-team-gold' :
+                      'bg-team-gray border-team-gold text-team-gold'}
                     ${bankroll < value ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'}
                   `}
                 >
@@ -733,66 +733,66 @@ const CasinoPage = () => {
             <div className="h-12 flex justify-center gap-4">
               {gameState === 'betting' && (
                 <>
-                  <Button 
-                    onClick={resetBet} 
-                    className="bg-red-900/50 text-red-400 hover:bg-red-900/70"
+                  <Button
+                    onClick={resetBet}
+                    className="font-headline text-xs tracking-[0.15em] uppercase bg-team-gray border border-team-gold/30 text-team-silver hover:text-team-cream hover:border-team-gold/60"
                     disabled={currentBet <= 0}
                   >
                     Reset Bet
                   </Button>
-                  <Button 
-                    onClick={startGame} 
-                    className="bg-green-900/50 text-green-400 hover:bg-green-900/70"
+                  <Button
+                    onClick={startGame}
+                    className="font-headline text-xs tracking-[0.15em] uppercase bg-team-cream text-team-black border border-team-cream hover:bg-team-gold"
                     disabled={currentBet <= 0}
                   >
                     Deal
                   </Button>
                   {kidneysLeft > 0 ? (
-                    <Button 
-                      onClick={sellKidney} 
-                      className="bg-red-900/50 text-red-400 hover:bg-red-900/70"
+                    <Button
+                      onClick={sellKidney}
+                      className="font-headline text-xs tracking-[0.15em] uppercase bg-team-gray border border-red-900/40 text-red-400 hover:border-red-700/60"
                     >
                       Sell Kidney (+${STARTING_BANKROLL})
                     </Button>
                   ) : (
-                    <Button 
-                      onClick={resetGame} 
-                      className="bg-purple-900/50 text-purple-400 hover:bg-purple-900/70"
+                    <Button
+                      onClick={resetGame}
+                      className="font-headline text-xs tracking-[0.15em] uppercase bg-team-gray border border-team-gold/30 text-team-gold hover:border-team-gold/60"
                     >
                       Reset Game (Out of Kidneys)
                     </Button>
                   )}
                 </>
               )}
-              
+
               {gameState === 'playing' && (
                 <>
-                  <Button 
-                    onClick={hit} 
-                    className="bg-team-silver text-team-black hover:bg-team-white"
+                  <Button
+                    onClick={hit}
+                    className="font-headline text-xs tracking-[0.15em] uppercase bg-team-cream text-team-black hover:bg-team-gold"
                   >
                     Hit
                   </Button>
-                  <Button 
-                    onClick={stand} 
-                    className="bg-team-gray text-team-white hover:bg-team-silver hover:text-team-black"
+                  <Button
+                    onClick={stand}
+                    className="font-headline text-xs tracking-[0.15em] uppercase bg-team-gray text-team-cream border border-team-gold/30 hover:border-team-gold/60"
                   >
                     Stand
                   </Button>
-                  <Button 
-                    onClick={doubleDown} 
-                    className="bg-green-900/50 text-green-400 hover:bg-green-900/70"
+                  <Button
+                    onClick={doubleDown}
+                    className="font-headline text-xs tracking-[0.15em] uppercase bg-team-gold/20 text-team-gold border border-team-gold/40 hover:bg-team-gold/30"
                     disabled={bankroll < currentBet * 2}
                   >
                     Double Down
                   </Button>
                 </>
               )}
-              
+
               {gameState === 'gameOver' && (
-                <Button 
-                  onClick={newHand} 
-                  className="bg-team-silver text-team-black hover:bg-team-white"
+                <Button
+                  onClick={newHand}
+                  className="font-headline text-xs tracking-[0.15em] uppercase bg-team-cream text-team-black hover:bg-team-gold"
                 >
                   New Hand
                 </Button>
@@ -803,32 +803,31 @@ const CasinoPage = () => {
         
         {/* Prizes Section */}
         <div className="mb-8">
-          <h2 className="text-2xl font-display font-bold text-team-white mb-6">Redeem Prizes</h2>
+          <h2 className="text-sm font-headline tracking-[0.3em] uppercase text-team-gold mb-6">Redeem Prizes</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {PRIZES.map(prize => (
-              <Card key={prize.id} className="bg-team-gray/20 border-team-gray/30">
-                <CardContent className="p-6">
+              <div key={prize.id} className="vintage-card p-6">
                   <div className="flex flex-col h-full">
                     <div className="mb-4 flex justify-center">
                       {prize.image && (
-                        <img 
-                          src={prize.image} 
-                          alt={prize.name} 
+                        <img
+                          src={prize.image}
+                          alt={prize.name}
                           className="w-24 h-24 object-contain"
                         />
                       )}
                     </div>
-                    <h3 className="text-xl font-display font-bold text-team-white mb-2">
+                    <h3 className="text-xl font-display font-bold text-team-cream mb-2">
                       {prize.id === 'pbr' ? (
                         <span>
-                          <span className="text-2xl text-team-silver">{pbrCount}</span> Warm PBR{pbrCount > 1 ? 's' : ''}
+                          <span className="text-2xl text-team-gold">{pbrCount}</span> Warm PBR{pbrCount > 1 ? 's' : ''}
                         </span>
                       ) : (
                         prize.name
                       )}
                     </h3>
-                    <p className="text-team-silver mb-4 flex-grow">{prize.description}</p>
-                    
+                    <p className="text-team-silver mb-4 flex-grow font-body italic">{prize.description}</p>
+
                     {prize.type === 'slider' ? (
                       <div className="space-y-3">
                         <div className="flex items-center">
@@ -838,14 +837,14 @@ const CasinoPage = () => {
                             max="1000"
                             value={pbrCount}
                             onChange={(e) => setPbrCount(parseInt(e.target.value))}
-                            className="w-full h-2 bg-team-gray rounded-lg appearance-none cursor-pointer"
+                            className="w-full h-2 bg-team-gray appearance-none cursor-pointer"
                           />
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-lg font-display font-bold text-team-white">${prize.cost * pbrCount}</span>
-                          <Button 
-                            onClick={() => redeemPrize(prize)} 
-                            className="bg-team-silver text-team-black hover:bg-team-white"
+                          <span className="text-lg font-display font-bold text-team-gold">${prize.cost * pbrCount}</span>
+                          <Button
+                            onClick={() => redeemPrize(prize)}
+                            className="font-headline text-xs tracking-[0.15em] uppercase bg-team-cream text-team-black hover:bg-team-gold"
                             disabled={bankroll < prize.cost * pbrCount}
                           >
                             Redeem {pbrCount > 10 ? 'Bulk Order' : ''}
@@ -854,10 +853,10 @@ const CasinoPage = () => {
                       </div>
                     ) : (
                       <div className="flex justify-between items-center">
-                        <span className="text-lg font-display font-bold text-team-white">${prize.cost}</span>
-                        <Button 
-                          onClick={() => redeemPrize(prize)} 
-                          className="bg-team-silver text-team-black hover:bg-team-white"
+                        <span className="text-lg font-display font-bold text-team-gold">${prize.cost}</span>
+                        <Button
+                          onClick={() => redeemPrize(prize)}
+                          className="font-headline text-xs tracking-[0.15em] uppercase bg-team-cream text-team-black hover:bg-team-gold"
                           disabled={bankroll < prize.cost}
                         >
                           Redeem
@@ -865,8 +864,7 @@ const CasinoPage = () => {
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+              </div>
             ))}
           </div>
         </div>
@@ -875,19 +873,19 @@ const CasinoPage = () => {
       {/* Prize redemption popup */}
       {prizePopup.show && prizePopup.prize && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div 
+          <div
             ref={confettiRef}
-            className="bg-team-darkgray rounded-lg p-6 max-w-md w-full relative"
+            className="vintage-card p-8 max-w-md w-full relative"
           >
-            <button 
+            <button
               onClick={closePopup}
-              className="absolute top-2 right-2 text-team-silver hover:text-team-white"
+              className="absolute top-4 right-4 text-team-silver hover:text-team-cream"
             >
               <X className="h-6 w-6" />
             </button>
-            
+
             <div className="text-center">
-              <h3 className="text-2xl font-display font-bold text-team-white mb-4">
+              <h3 className="text-sm font-headline tracking-[0.3em] uppercase text-team-gold mb-4">
                 Prize Redeemed!
               </h3>
               
@@ -901,21 +899,21 @@ const CasinoPage = () => {
                 )}
               </div>
               
-              <p className="text-xl font-display font-bold text-team-silver mb-2">
-                {prizePopup.prize.id === 'pbr' && prizePopup.quantity 
+              <p className="text-xl font-display font-bold text-team-cream mb-2">
+                {prizePopup.prize.id === 'pbr' && prizePopup.quantity
                   ? `${prizePopup.quantity} Warm PBR${prizePopup.quantity > 1 ? 's' : ''}`
                   : prizePopup.prize.name}
               </p>
-              
-              <p className="text-team-silver mb-6">
+
+              <p className="text-team-silver mb-6 font-body italic">
                 {prizePopup.prize.description}
               </p>
-              
-              <Button 
+
+              <Button
                 onClick={closePopup}
-                className="bg-team-silver text-team-black hover:bg-team-white"
+                className="font-headline text-xs tracking-[0.15em] uppercase bg-team-cream text-team-black hover:bg-team-gold"
               >
-                Awesome!
+                Splendid!
               </Button>
             </div>
           </div>

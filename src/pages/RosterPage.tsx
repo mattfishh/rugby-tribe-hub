@@ -22,7 +22,7 @@ const RosterPage = () => {
   const backs = players?.filter(p => BACK_POSITIONS.includes(p.position)) ?? [];
 
   const renderPlayerCard = (player: NonNullable<typeof players>[number]) => (
-    <Card key={player._id} className="bg-team-darkgray border-team-gray/30 overflow-hidden">
+    <Card key={player._id} className="bg-team-darkgray border-team-gold/20 overflow-hidden card-hover">
       <CardContent className="p-0">
         <div className="aspect-w-3 aspect-h-4">
           <img
@@ -34,24 +34,24 @@ const RosterPage = () => {
 
         <div className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xl font-display font-bold text-team-white">{player.name}</h3>
+            <h3 className="text-xl font-display font-bold text-team-cream">{player.name}</h3>
             {player.number && (
-              <span className="text-2xl font-display font-bold text-team-silver">#{player.number}</span>
+              <span className="text-2xl font-headline tracking-wider text-team-gold">#{player.number}</span>
             )}
           </div>
 
-          <div className="text-team-silver mb-3">{player.position}</div>
+          <div className="text-team-silver font-body italic mb-3">{player.position}</div>
 
           {(player.height || player.weight) && (
-            <div className="flex space-x-3 text-sm mb-3">
+            <div className="flex space-x-3 text-sm mb-3 font-body">
               {player.height && (
-                <div className="text-team-white/70">
+                <div className="text-team-cream/70">
                   <span className="font-semibold">Height:</span> {player.height}
                 </div>
               )}
 
               {player.weight && (
-                <div className="text-team-white/70">
+                <div className="text-team-cream/70">
                   <span className="font-semibold">Weight:</span> {player.weight}
                 </div>
               )}
@@ -59,7 +59,7 @@ const RosterPage = () => {
           )}
 
           {player.hometown && (
-            <div className="text-sm text-team-white/70 mb-4">
+            <div className="text-sm text-team-cream/70 mb-4 font-body">
               <span className="font-semibold">From:</span> {player.hometown}
             </div>
           )}
@@ -74,26 +74,26 @@ const RosterPage = () => {
 
       {isLoading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-team-silver"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-team-gold"></div>
         </div>
       ) : (
         <Tabs defaultValue="team" className="w-full" onValueChange={setActiveTab}>
-          <TabsList className="mb-8 bg-team-darkgray">
+          <TabsList className="mb-8 bg-team-darkgray border border-team-gold/20">
             <TabsTrigger
               value="team"
-              className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
+              className="font-headline text-xs tracking-[0.15em] uppercase data-[state=active]:bg-team-gray data-[state=active]:text-team-cream"
             >
               Full Roster
             </TabsTrigger>
             <TabsTrigger
               value="forwards"
-              className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
+              className="font-headline text-xs tracking-[0.15em] uppercase data-[state=active]:bg-team-gray data-[state=active]:text-team-cream"
             >
               Forwards
             </TabsTrigger>
             <TabsTrigger
               value="backs"
-              className="data-[state=active]:bg-team-gray data-[state=active]:text-team-white"
+              className="font-headline text-xs tracking-[0.15em] uppercase data-[state=active]:bg-team-gray data-[state=active]:text-team-cream"
             >
               Backs
             </TabsTrigger>

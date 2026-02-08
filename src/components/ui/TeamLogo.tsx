@@ -31,9 +31,9 @@ const TeamLogo: React.FC<TeamLogoProps> = ({
         )}
       />
       {withText && (
-        <div className="ml-3 font-display font-bold">
-          <div className="text-sm sm:text-base uppercase tracking-wider text-team-silver">Tavistock</div>
-          <div className="text-lg sm:text-2xl uppercase tracking-wide text-team-white -mt-1">TRASH PANDAS</div>
+        <div className="ml-3">
+          <div className="text-xs sm:text-sm font-headline tracking-[0.3em] uppercase text-team-silver">Tavistock</div>
+          <div className="text-lg sm:text-2xl font-display font-bold italic tracking-wide text-team-cream -mt-1">Trash Pandas</div>
         </div>
       )}
     </div>

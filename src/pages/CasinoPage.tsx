@@ -39,7 +39,7 @@ const PRIZES: Prize[] = [
     name: 'Warm PBR',
     description: 'Nothing says "rugby" like a lukewarm Pabst Blue Ribbon. Buy in bulk for team events.',
     cost: 2,
-    image: '/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png',
+    image: '/images/logos/tavistock-logo.jpg',
     type: 'slider'
   },
   {
@@ -47,14 +47,14 @@ const PRIZES: Prize[] = [
     name: 'Connecticut Speeding Ticket',
     description: 'Nate thanks you for your donation. He promises to never visit Connecticut again.',
     cost: 350,
-    image: '/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png'
+    image: '/images/logos/tavistock-logo.jpg'
   },
   {
     id: 'raccoon',
     name: 'A Live Raccoon',
     description: 'Adopt your very own trash panda. Rabies status unknown. No refunds.',
     cost: 6969,
-    image: '/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png'
+    image: '/images/logos/tavistock-logo.jpg'
   }
 ];
 
@@ -446,7 +446,7 @@ const CasinoPage = () => {
         <div className="w-32 h-48 bg-team-gray border-2 border-team-gold/30 flex items-center justify-center shadow-md">
           <div className="w-28 h-44 bg-team-darkgray flex items-center justify-center border border-team-gold/10">
             <img
-              src="/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"
+              src="/images/logos/tavistock-logo.jpg"
               alt="Card Back"
               className="w-16 h-16 object-contain opacity-50"
             />

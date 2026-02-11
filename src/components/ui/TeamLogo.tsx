@@ -23,7 +23,7 @@ const TeamLogo: React.FC<TeamLogoProps> = ({
   return (
     <div className={cn('flex items-center', className)}>
       <img 
-        src="/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png" 
+        src="/images/logos/tavistock-logo.jpg" 
         alt="Tavistock Trash Pandas Logo" 
         className={cn(
           'object-contain',

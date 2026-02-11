@@ -45,7 +45,7 @@ const HeroSection = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex flex-col items-center">
             <img
-              src={nextMatch.homeTeam?.logoUrl || "/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"}
+              src={nextMatch.homeTeam?.logoUrl || "/images/logos/tavistock-logo.jpg"}
               alt={nextMatch.homeTeam?.name || "Home Team"}
               className="w-16 h-16 object-contain"
             />
@@ -98,7 +98,7 @@ const HeroSection = () => {
 
   return (
     <section className="relative bg-team-black py-20 md:py-28">
-      <div className="absolute inset-0 bg-[url('/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png')] bg-center opacity-5"></div>
+      <div className="absolute inset-0 bg-[url('/images/logos/tavistock-logo.jpg')] bg-center opacity-5"></div>
       {/* Decorative top border */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-team-gold/40 to-transparent"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">

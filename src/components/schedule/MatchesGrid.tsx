@@ -1,9 +1,5 @@
 import React from 'react';
 import MatchCard from './MatchCard';
-import { Button } from '@/components/ui/button';
-import { useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { RefreshCw } from 'lucide-react';
 
 type MatchWithTeams = {
   _id: string;
@@ -26,12 +22,6 @@ type MatchesGridProps = {
 };
 
 const MatchesGrid = ({ matches, isPast = false }: MatchesGridProps) => {
-  const updateStandings = useMutation(api.stats.updateStandingsFromMatches);
-
-  const handleUpdateStandings = async () => {
-    await updateStandings({ season: "2025" });
-  };
-
   if (matches.length === 0) {
     return (
       <div className="text-center py-12 vintage-card">
@@ -55,29 +45,15 @@ const MatchesGrid = ({ matches, isPast = false }: MatchesGridProps) => {
   });
 
   return (
-    <div>
-      {isPast && (
-        <div className="mb-6 flex justify-end">
-          <Button
-            onClick={handleUpdateStandings}
-            className="flex items-center gap-2 bg-team-accent hover:bg-team-accent/80"
-          >
-            <RefreshCw size={16} />
-            Update Standings
-          </Button>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {sortedMatches.map((match, index) => (
-          <MatchCard
-            key={match._id}
-            match={match}
-            isPast={isPast}
-            index={index}
-          />
-        ))}
-      </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {sortedMatches.map((match, index) => (
+        <MatchCard
+          key={match._id}
+          match={match}
+          isPast={isPast}
+          index={index}
+        />
+      ))}
     </div>
   );
 };

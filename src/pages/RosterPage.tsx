@@ -4,9 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 
-const FORWARD_POSITIONS = ["Prop", "Hooker", "Lock", "Flanker", "Number 8"];
-const BACK_POSITIONS = ["Scrum Half", "Fly Half", "Centre", "Winger", "Fullback"];
-
 const RosterPage = () => {
   const [activeTab, setActiveTab] = useState('team');
 
@@ -18,18 +15,31 @@ const RosterPage = () => {
 
   const isLoading = homeTeam === undefined || (homeTeam && players === undefined);
 
-  const forwards = players?.filter(p => FORWARD_POSITIONS.includes(p.position)) ?? [];
-  const backs = players?.filter(p => BACK_POSITIONS.includes(p.position)) ?? [];
+  const forwards = players?.filter(p => p.position.toLowerCase() === "forward") ?? [];
+  const backs = players?.filter(p => p.position.toLowerCase() === "back") ?? [];
+
+  const getInitials = (name: string) =>
+    name.split(" ").map((w) => w[0]).join("").toUpperCase();
 
   const renderPlayerCard = (player: NonNullable<typeof players>[number]) => (
     <Card key={player._id} className="bg-team-darkgray border-team-gold/20 overflow-hidden card-hover">
       <CardContent className="p-0">
-        <div className="aspect-w-3 aspect-h-4">
-          <img
-            src={player.imageUrl || '/placeholder.svg'}
-            alt={player.name}
-            className="object-cover w-full h-full"
-          />
+        <div className="relative" style={{ aspectRatio: "3/4" }}>
+          <div className="absolute inset-0 flex items-center justify-center bg-team-gray">
+            <span className="text-5xl font-headline tracking-wider text-team-gold/60">
+              {getInitials(player.name)}
+            </span>
+          </div>
+          {player.imageUrl && (
+            <img
+              src={player.imageUrl}
+              alt={player.name}
+              className="absolute inset-0 object-cover w-full h-full z-10"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          )}
         </div>
 
         <div className="p-4">

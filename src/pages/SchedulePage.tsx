@@ -2,27 +2,37 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import TeamFilter from '@/components/schedule/TeamFilter';
 import MatchesGrid from '@/components/schedule/MatchesGrid';
 import LoadingSpinner from '@/components/schedule/LoadingSpinner';
 import { Helmet } from 'react-helmet-async';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const SchedulePage = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [selectedTeam, setSelectedTeam] = useState('all');
+  const [selectedSeason, setSelectedSeason] = useState('2025');
 
   const teams = useQuery(api.teams.getAll);
   const upcomingMatchesData = useQuery(api.matches.getUpcoming);
-  const pastMatchesData = useQuery(api.matches.getPast);
+
+  const regularSeasonMatches = useQuery(api.matches.getBySeason, { season: selectedSeason });
+  const playoffMatches = useQuery(api.matches.getBySeason, { season: `${selectedSeason} Playoffs` });
+
+  const pastMatchesData = React.useMemo(() => {
+    if (regularSeasonMatches === undefined || playoffMatches === undefined) return undefined;
+    const all = [...regularSeasonMatches, ...playoffMatches]
+      .filter(m => m.status === "completed");
+    all.sort((a, b) => b.matchDate.localeCompare(a.matchDate));
+    return all;
+  }, [regularSeasonMatches, playoffMatches]);
 
   const isLoading = teams === undefined || upcomingMatchesData === undefined || pastMatchesData === undefined;
-
-  const teamsForFilter = teams?.map(t => ({
-    id: t._id,
-    name: t.name,
-    shortName: t.shortName,
-    isHomeTeam: t.isHomeTeam,
-  })) ?? [];
 
   const filterMatchesByTeam = (matches: typeof upcomingMatchesData) => {
     if (!matches) return [];
@@ -47,44 +57,59 @@ const SchedulePage = () => {
       {isLoading ? (
         <LoadingSpinner />
       ) : (
-        <>
-          <Tabs defaultValue="upcoming" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="mb-8 bg-team-darkgray border border-team-gold/20">
+        <Tabs defaultValue="upcoming" className="w-full" onValueChange={setActiveTab}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <TabsList className="bg-team-darkgray border border-team-gold/20">
               <TabsTrigger
                 value="upcoming"
                 className="font-headline text-xs tracking-[0.15em] uppercase data-[state=active]:bg-team-gray data-[state=active]:text-team-cream"
               >
-                Upcoming Matches
+                Upcoming
               </TabsTrigger>
               <TabsTrigger
                 value="past"
                 className="font-headline text-xs tracking-[0.15em] uppercase data-[state=active]:bg-team-gray data-[state=active]:text-team-cream"
               >
-                Past Results
+                Results
               </TabsTrigger>
             </TabsList>
 
-            <TeamFilter
-              teams={teamsForFilter}
-              selectedTeam={selectedTeam}
-              onSelectTeam={setSelectedTeam}
-            />
+            <div className="flex items-center gap-3">
+              {activeTab === 'past' && (
+                <Select value={selectedSeason} onValueChange={setSelectedSeason}>
+                  <SelectTrigger className="w-40 bg-team-darkgray border-team-gold/20 text-team-cream font-body text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-team-darkgray border-team-gold/20 text-team-cream">
+                    <SelectItem value="2025">2025 Season</SelectItem>
+                    <SelectItem value="2024">2024 Season</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                <SelectTrigger className="w-56 bg-team-darkgray border-team-gold/20 text-team-cream font-body text-sm">
+                  <SelectValue placeholder="All Teams" />
+                </SelectTrigger>
+                <SelectContent className="bg-team-darkgray border-team-gold/20 text-team-cream">
+                  <SelectItem value="all">All Teams</SelectItem>
+                  {teams?.map(team => (
+                    <SelectItem key={team._id} value={team._id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-            <TabsContent value="upcoming" className="mt-0">
-              <MatchesGrid
-                matches={filteredUpcomingMatches}
-                isPast={false}
-              />
-            </TabsContent>
+          <TabsContent value="upcoming" className="mt-0">
+            <MatchesGrid matches={filteredUpcomingMatches} isPast={false} />
+          </TabsContent>
 
-            <TabsContent value="past" className="mt-0">
-              <MatchesGrid
-                matches={filteredPastMatches}
-                isPast={true}
-              />
-            </TabsContent>
-          </Tabs>
-        </>
+          <TabsContent value="past" className="mt-0">
+            <MatchesGrid matches={filteredPastMatches} isPast={true} />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

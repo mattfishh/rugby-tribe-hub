@@ -112,16 +112,6 @@ const StandingsPage = () => {
             )}
         </div>
       )}
-
-      <div className="mt-12 vintage-card p-8">
-        <h2 className="text-2xl font-display font-bold text-team-cream mb-4">Season Reports</h2>
-        <p className="text-team-silver mb-4 font-body">
-          Detailed statistics and analytics for the {selectedSeason} season are available for download.
-        </p>
-        <button className="vintage-btn-primary">
-          Download Full Stats
-        </button>
-      </div>
     </div>
   );
 };

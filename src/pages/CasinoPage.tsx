@@ -156,67 +156,69 @@ const CasinoPage = () => {
       setMessage('Please place a bet first!');
       return;
     }
-    
+
     if (currentBet > bankroll) {
       setMessage('Not enough funds!');
       return;
     }
-    
+
+    // DEDUCT THE BET FROM BANKROLL
+    setBankroll(prev => prev - currentBet);
+
     // Reset hands
     setPlayerHand([]);
     setDealerHand([]);
     setMessage('');
     setResult('');
-    
+
     // Check if we need a new deck (less than 20 cards left)
     if (deck.length < 20) {
       initializeDeck();
     }
-    
+
     // Deal initial cards in proper blackjack order:
     // We'll deal all cards at once to ensure they're unique
     const [firstCard, secondCard, thirdCard, fourthCard, ...remainingDeck] = deck;
-    
+
     const pCard1 = { ...firstCard };
     const dCard1 = { ...secondCard };
     const pCard2 = { ...thirdCard };
     const dCard2 = { ...fourthCard, hidden: true };
-    
+
     // Update the deck
     setDeck(remainingDeck);
-    
+
     // Set the hands
     const newPlayerHand = [pCard1, pCard2];
     const newDealerHand = [dCard1, dCard2];
-    
+
     setPlayerHand(newPlayerHand);
     setDealerHand(newDealerHand);
     setGameState('playing');
-    
+
     // Check for natural blackjack
     setTimeout(() => {
       const playerScore = calculateHandValue(newPlayerHand);
       const dealerScore = calculateHandValue(newDealerHand);
-      const dealerVisibleScore = calculateHandValue([dCard1]); // Score of visible card only
-      
+
       // Check for natural blackjack (21 with first two cards)
       if (playerScore === 21) {
         // Reveal dealer's hidden card
         const updatedDealerHand = newDealerHand.map(card => ({ ...card, hidden: false }));
         setDealerHand(updatedDealerHand);
-        
+
         if (dealerScore === 21) {
-          // Both have blackjack - it's a push
+          // Both have blackjack - it's a push (return bet)
           setMessage("Both have Blackjack! It's a push.");
           setResult('push');
-          setBankroll(prev => prev + currentBet); // Return the bet
+          setBankroll(prev => prev + currentBet);
           setGameState('gameOver');
         } else {
           // Player has blackjack, dealer doesn't - player wins 3:2
-          const blackjackPayout = currentBet * 1.5;
-          setMessage(`Blackjack! You win ${blackjackPayout.toFixed(2)}!`);
+          const blackjackPayout = Math.floor(currentBet * 2.5);
+          setMessage(`Blackjack! You win $${Math.floor(currentBet * 1.5)}!`);
           setResult('win');
-          setBankroll(prev => prev + currentBet + blackjackPayout);
+          setBankroll(prev => prev + blackjackPayout);
           setGameState('gameOver');
         }
       }
@@ -228,90 +230,35 @@ const CasinoPage = () => {
     const newCard = dealCard();
     const newHand = [...playerHand, newCard];
     setPlayerHand(newHand);
-    
+
     const newScore = calculateHandValue(newHand);
-    
+
     if (newScore > 21) {
       // Player busts
       setMessage(`Bust! You went over with ${newScore}.`);
       setResult('lose');
       setGameState('gameOver');
-      
+
       // Reveal dealer's hidden card
       const revealedDealerHand = dealerHand.map(card => ({ ...card, hidden: false }));
       setDealerHand(revealedDealerHand);
     } else if (newScore === 21) {
-      // Player has 21, automatically stand
-      // We need to ensure the state is updated before standing
-      setPlayerHand(newHand);
-      
-      // Use a callback to ensure the state is updated before standing
-      setTimeout(() => {
-        // Call stand with the updated hand
-        const updatedPlayerHand = newHand;
-        const revealedDealerHand = dealerHand.map(card => ({ ...card, hidden: false }));
-        setDealerHand(revealedDealerHand);
-        
-        // Dealer's turn
-        let currentDealerHand = [...revealedDealerHand];
-        let dealerScore = calculateHandValue(currentDealerHand);
-        
-        const dealerPlay = () => {
-          if (dealerScore < 17) {
-            const newCard = dealCard();
-            currentDealerHand = [...currentDealerHand, newCard];
-            setDealerHand(currentDealerHand);
-            dealerScore = calculateHandValue(currentDealerHand);
-            
-            setTimeout(() => {
-              dealerPlay();
-            }, 700);
-          } else {
-            // Determine the winner
-            const playerScore = calculateHandValue(updatedPlayerHand);
-            
-            if (dealerScore > 21) {
-              // Dealer busts
-              setMessage(`Dealer busts with ${dealerScore}! You win $${currentBet}!`);
-              setResult('win');
-              setBankroll(prev => prev + currentBet * 2);
-            } else if (playerScore > dealerScore) {
-              // Player wins
-              setMessage(`You win with ${playerScore} vs dealer's ${dealerScore}! +$${currentBet}`);
-              setResult('win');
-              setBankroll(prev => prev + currentBet * 2);
-            } else if (dealerScore > playerScore) {
-              // Dealer wins
-              setMessage(`Dealer wins with ${dealerScore} vs your ${playerScore}.`);
-              setResult('lose');
-            } else {
-              // Push - tie
-              setMessage(`Push! Both have ${playerScore}.`);
-              setResult('push');
-              setBankroll(prev => prev + currentBet);
-            }
-            
-            setGameState('gameOver');
-          }
-        };
-        
-        setTimeout(() => {
-          dealerPlay();
-        }, 700);
-      }, 500);
+      // Player has 21, automatically stand with the new score
+      setMessage('You have 21! Standing automatically.');
+      setTimeout(() => playDealerHand(newScore), 500);
     }
   };
 
-  // Player stands - improved dealer logic with proper card dealing
-  const stand = () => {
+  // Play dealer's hand - accepts player score to avoid state issues
+  const playDealerHand = (playerScore: number, betAmount: number = currentBet) => {
     // Reveal dealer's hidden card first
     const revealedDealerHand = dealerHand.map(card => ({ ...card, hidden: false }));
     setDealerHand(revealedDealerHand);
-    
+
     // Dealer's turn
     let currentDealerHand = [...revealedDealerHand];
     let dealerScore = calculateHandValue(currentDealerHand);
-    
+
     // Dealer must draw until they have at least 17
     const dealerPlay = () => {
       if (dealerScore < 17) {
@@ -319,42 +266,46 @@ const CasinoPage = () => {
         currentDealerHand = [...currentDealerHand, newCard];
         setDealerHand(currentDealerHand);
         dealerScore = calculateHandValue(currentDealerHand);
-        
+
         setTimeout(() => {
           dealerPlay();
         }, 700);
       } else {
-        // Determine the winner
-        const playerScore = calculateHandValue(playerHand);
-        
+        // Determine the winner using the passed player score
         if (dealerScore > 21) {
-          // Dealer busts
-          setMessage(`Dealer busts with ${dealerScore}! You win $${currentBet}!`);
+          // Dealer busts - player wins (get bet back + winnings)
+          setMessage(`Dealer busts with ${dealerScore}! You win $${betAmount}!`);
           setResult('win');
-          setBankroll(prev => prev + currentBet * 2);
+          setBankroll(prev => prev + betAmount * 2);
         } else if (playerScore > dealerScore) {
-          // Player wins
-          setMessage(`You win with ${playerScore} vs dealer's ${dealerScore}! +$${currentBet}`);
+          // Player wins (get bet back + winnings)
+          setMessage(`You win with ${playerScore} vs dealer's ${dealerScore}! +$${betAmount}`);
           setResult('win');
-          setBankroll(prev => prev + currentBet * 2);
+          setBankroll(prev => prev + betAmount * 2);
         } else if (dealerScore > playerScore) {
-          // Dealer wins
+          // Dealer wins (bet already deducted, nothing to do)
           setMessage(`Dealer wins with ${dealerScore} vs your ${playerScore}.`);
           setResult('lose');
         } else {
-          // Push - tie
+          // Push - tie (return bet only)
           setMessage(`Push! Both have ${playerScore}.`);
           setResult('push');
-          setBankroll(prev => prev + currentBet);
+          setBankroll(prev => prev + betAmount);
         }
-        
+
         setGameState('gameOver');
       }
     };
-    
+
     setTimeout(() => {
       dealerPlay();
     }, 700);
+  };
+
+  // Player stands - use the playDealerHand function
+  const stand = () => {
+    const playerScore = calculateHandValue(playerHand);
+    playDealerHand(playerScore);
   };
 
   // Reveal dealer's hidden card - improved to create new objects
@@ -390,13 +341,13 @@ const CasinoPage = () => {
   // Place a bet
   const placeBet = (amount: number) => {
     if (gameState !== 'betting') return;
-    
-    const newBet = Math.max(0, currentBet + amount);
+
+    const newBet = currentBet + amount;
     if (newBet > bankroll) {
       setMessage('Not enough funds!');
       return;
     }
-    
+
     setCurrentBet(newBet);
     setMessage('');
   };
@@ -439,16 +390,16 @@ const CasinoPage = () => {
     initializeDeck();
   };
 
-  // Render a card - improved styling and clarity with larger card size
+  // Render a card - balanced size for better screen fit and readability
   const renderCard = (card: PlayingCard) => {
     if (card.hidden) {
       return (
-        <div className="w-32 h-48 bg-team-gray border-2 border-team-gold/30 flex items-center justify-center shadow-md">
-          <div className="w-28 h-44 bg-team-darkgray flex items-center justify-center border border-team-gold/10">
+        <div className="w-24 h-32 bg-team-gray border-2 border-team-gold/30 flex items-center justify-center shadow-md rounded-sm">
+          <div className="w-20 h-28 bg-team-darkgray flex items-center justify-center border border-team-gold/10">
             <img
               src="/lovable-uploads/11addc92-eec4-4bc8-bf09-e03a971de567.png"
               alt="Card Back"
-              className="w-16 h-16 object-contain opacity-50"
+              className="w-12 h-12 object-contain opacity-50"
             />
           </div>
         </div>
@@ -465,15 +416,15 @@ const CasinoPage = () => {
     const suitColor = card.suit === 'hearts' || card.suit === 'diamonds' ? 'text-red-800' : 'text-team-black';
 
     return (
-      <div className="w-32 h-48 bg-team-cream border-2 border-team-gold/40 flex flex-col items-center justify-between p-3 shadow-md">
+      <div className="w-24 h-32 bg-team-cream border-2 border-team-gold/40 flex flex-col items-center justify-between p-2 shadow-md rounded-sm">
         <div className={`text-left w-full ${suitColor}`}>
-          <div className="text-xl font-display font-bold">{card.rank}</div>
-          <div className="text-2xl">{suitSymbol}</div>
+          <div className="text-base font-display font-bold leading-none">{card.rank}</div>
+          <div className="text-lg leading-none">{suitSymbol}</div>
         </div>
-        <div className={`text-5xl ${suitColor}`}>{suitSymbol}</div>
+        <div className={`text-3xl ${suitColor}`}>{suitSymbol}</div>
         <div className={`text-right w-full ${suitColor} rotate-180`}>
-          <div className="text-xl font-display font-bold">{card.rank}</div>
-          <div className="text-2xl">{suitSymbol}</div>
+          <div className="text-base font-display font-bold leading-none">{card.rank}</div>
+          <div className="text-lg leading-none">{suitSymbol}</div>
         </div>
       </div>
     );
@@ -487,33 +438,36 @@ const CasinoPage = () => {
 
   // Add a new function for double down
   const doubleDown = () => {
-    if (bankroll < currentBet * 2) {
+    if (bankroll < currentBet) {
       setMessage('Not enough funds to double down!');
       return;
     }
-    
-    // Double the bet
-    setCurrentBet(prev => prev * 2);
-    
+
+    // Deduct the additional bet amount (original bet was already deducted)
+    setBankroll(prev => prev - currentBet);
+
+    // Double the bet for payout calculations
+    const doubledBet = currentBet * 2;
+    setCurrentBet(doubledBet);
+
     // Take one card and stand
     const [newCard, ...remainingDeck] = deck;
     setDeck(remainingDeck);
-    
+
     const newHand = [...playerHand, { ...newCard }];
     setPlayerHand(newHand);
-    
+
     const handValue = calculateHandValue(newHand);
-    
+
     if (handValue > 21) {
       // Player busts
       revealDealerCard();
-      setResult('bust');
-      setMessage('Bust! You lose.');
-      setBankroll(prev => prev - currentBet * 2);
+      setResult('lose');
+      setMessage(`Bust with ${handValue}! You lose.`);
       setGameState('gameOver');
     } else {
-      // Automatically stand
-      setTimeout(() => stand(), 500);
+      // Automatically play dealer's hand with the doubled bet
+      setTimeout(() => playDealerHand(handValue, doubledBet), 500);
     }
   };
 
@@ -594,38 +548,30 @@ const CasinoPage = () => {
       <div className="page-container">
         <h1 className="section-title">RaccJack</h1>
         
-        {/* Game rules as collapsible accordion - moved above the game */}
-        <div className="mb-8">
+        {/* Game rules as collapsible accordion - compact */}
+        <div className="mb-4">
           <button
             onClick={() => setRulesExpanded(!rulesExpanded)}
-            className="w-full bg-team-gray/10 border border-team-gold/20 p-4 flex justify-between items-center"
+            className="w-full bg-team-gray/10 border border-team-gold/20 p-2 flex justify-between items-center"
           >
-            <h2 className="text-sm font-headline tracking-[0.2em] uppercase text-team-gold">How to Play RaccJack</h2>
+            <h2 className="text-xs font-headline tracking-[0.2em] uppercase text-team-gold">How to Play</h2>
             {rulesExpanded ? (
-              <ChevronUp className="h-6 w-6 text-team-silver" />
+              <ChevronUp className="h-4 w-4 text-team-silver" />
             ) : (
-              <ChevronDown className="h-6 w-6 text-team-silver" />
+              <ChevronDown className="h-4 w-4 text-team-silver" />
             )}
           </button>
-          
+
           {rulesExpanded && (
             <Card className="bg-team-gray/10 border-t-0 border-team-gold/20 rounded-t-none">
-              <CardContent className="p-6">
-                <div className="space-y-3 text-team-silver font-body">
-                  <p>RaccJack is just blackjack, with blackmarket organ dealing to obtain more money.</p>
-                  
-                  <p>If you don't know how to play blackjack, this might not be the team to support for you. But here are the rules anyways.</p>
-                  
-                  <ul className="list-disc pl-5 space-y-2">
-                    <li>Place your bet and click "Deal" to start.</li>
-                    <li>Cards 2-10 are worth their face value.</li>
-                    <li>Face cards (J, Q, K) are worth 10 points.</li>
-                    <li>Aces are worth 11 points, unless that would cause you to bust, then they're worth 1 point.</li>
-                    <li>If you get 21 points exactly with your first two cards (an Ace and a 10-value card), you have a "Blackjack" and win 1.5 times your bet.</li>
-                    <li>Click "Hit" to take another card, or "Stand" to keep your current hand.</li>
-                    <li>If you go over 21, you "bust" and lose your bet.</li>
-                    <li>After you stand, the dealer reveals their hidden card and must hit until they have at least 17 points.</li>
-                    <li>If the dealer busts, you win. Otherwise, the hand with the higher value wins.</li>
+              <CardContent className="p-4">
+                <div className="space-y-2 text-team-silver font-body text-sm">
+                  <p className="text-xs italic">Standard blackjack with kidney sales for extra cash.</p>
+                  <ul className="list-disc pl-4 space-y-1 text-xs">
+                    <li>Get closer to 21 than the dealer without going over</li>
+                    <li>Face cards = 10, Aces = 11 or 1</li>
+                    <li>Blackjack (21 with 2 cards) pays 3:2</li>
+                    <li>Dealer must hit on 16 or less, stand on 17+</li>
                   </ul>
                 </div>
               </CardContent>
@@ -633,116 +579,132 @@ const CasinoPage = () => {
           )}
         </div>
         
-        {/* Game container */}
-        <div className="vintage-card p-8 mb-8">
-          {/* Bankroll display - fixed position */}
-          <div className="h-10 mb-6">
-            <div className="text-xl font-display font-bold text-team-cream">
+        {/* Game container - compact layout */}
+        <div className="vintage-card p-4 mb-6">
+          {/* Top info bar - bankroll and current bet in one row */}
+          <div className="flex justify-between items-center mb-3">
+            <div className="text-lg font-display font-bold text-team-cream">
               Bankroll: <span className="text-team-gold">${bankroll}</span>
             </div>
+            <div className="text-lg font-display font-bold text-team-cream">
+              Bet: <span className="text-team-gold">${currentBet}</span>
+            </div>
           </div>
-          
-          {/* Message area - moved above dealer's hand */}
-          <div className="h-16 mb-6">
-            {message ? (
-              <div className={`text-center py-3 rounded-lg font-display font-bold text-lg ${
-                result === 'win' || result === 'blackjack' 
-                  ? 'bg-green-900/30 text-green-400' 
-                  : result === 'lose' || result === 'bust' 
-                    ? 'bg-red-900/30 text-red-400' 
+
+          {/* Message area - compact */}
+          <div className="h-10 mb-3">
+            {message && (
+              <div className={`text-center py-2 rounded-lg font-display font-bold text-sm ${
+                result === 'win' || result === 'blackjack'
+                  ? 'bg-green-900/30 text-green-400'
+                  : result === 'lose' || result === 'bust'
+                    ? 'bg-red-900/30 text-red-400'
                     : 'bg-team-gray/30 text-team-silver'
               }`}>
                 {message}
               </div>
-            ) : (
-              <div className="h-12">{/* Empty placeholder */}</div>
             )}
           </div>
-          
-          {/* Playing area with fixed heights */}
-          <div className="flex flex-col mb-8">
-            {/* Dealer section - fixed height */}
-            <div className="min-h-[200px] w-full mb-8">
-              <h2 className="text-lg font-display font-bold text-team-silver mb-2 text-center">
-                Dealer's Hand {gameState !== 'betting' && (gameState === 'gameOver' || gameState === 'dealerTurn' 
-                  ? `(${calculateHandValue(dealerHand)})` 
+
+          {/* Playing area - compact two-column layout */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {/* Dealer section */}
+            <div className="min-h-[160px]">
+              <h2 className="text-base font-display font-bold text-team-silver mb-2 text-center">
+                Dealer {gameState !== 'betting' && (gameState === 'gameOver' || gameState === 'dealerTurn'
+                  ? `(${calculateHandValue(dealerHand)})`
                   : `(${getDealerVisibleScore()})`)}
               </h2>
-              <div className="flex flex-wrap gap-2 justify-center min-h-[160px] items-center">
+              <div className="flex flex-wrap gap-2 justify-center min-h-[130px] items-center">
                 {gameState !== 'betting' ? (
                   dealerHand.map((card, index) => (
-                    <div key={`dealer-${index}`} className="transform transition-transform hover:translate-y-[-5px]">
+                    <div key={`dealer-${index}`} className="transform transition-transform hover:translate-y-[-3px]">
                       {renderCard(card)}
                     </div>
                   ))
                 ) : (
-                  <div className="text-team-silver opacity-50">Cards will appear here</div>
+                  <div className="text-team-silver opacity-50 text-sm">Dealer cards</div>
                 )}
               </div>
             </div>
-            
-            {/* Player section - fixed height */}
-            <div className="min-h-[200px] w-full">
-              <h2 className="text-lg font-display font-bold text-team-silver mb-2 text-center">
-                Your Hand {gameState !== 'betting' && `(${calculateHandValue(playerHand)})`}
+
+            {/* Player section */}
+            <div className="min-h-[160px]">
+              <h2 className="text-base font-display font-bold text-team-silver mb-2 text-center">
+                You {gameState !== 'betting' && `(${calculateHandValue(playerHand)})`}
               </h2>
-              <div className="flex flex-wrap gap-2 justify-center min-h-[160px] items-center">
+              <div className="flex flex-wrap gap-2 justify-center min-h-[130px] items-center">
                 {gameState !== 'betting' ? (
                   playerHand.map((card, index) => (
-                    <div key={`player-${index}`} className="transform transition-transform hover:translate-y-[-5px]">
+                    <div key={`player-${index}`} className="transform transition-transform hover:translate-y-[-3px]">
                       {renderCard(card)}
                     </div>
                   ))
                 ) : (
-                  <div className="text-team-silver opacity-50">Cards will appear here</div>
+                  <div className="text-team-silver opacity-50 text-sm">Your cards</div>
                 )}
               </div>
             </div>
           </div>
-          
-          {/* Current bet display - always visible */}
-          <div className="text-center h-10 mb-4">
-            <div className="text-xl font-display font-bold text-team-cream">
-              Current Bet: <span className="text-team-gold">${currentBet}</span>
-            </div>
-          </div>
-          
-          {/* Game controls with consistent height */}
-          <div className="h-32 space-y-4">
+
+          {/* Game controls - compact */}
+          <div className="space-y-3">
             {/* Betting chips - only shown in betting state */}
-            <div className={`flex justify-center gap-4 transition-opacity duration-300 ${gameState === 'betting' ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
+            <div className={`flex justify-center gap-3 transition-opacity duration-300 ${gameState === 'betting' ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
               {CHIP_VALUES.map(value => (
-                <button
-                  key={value}
-                  onClick={() => placeBet(value)}
-                  disabled={bankroll < value || gameState !== 'betting'}
-                  className={`w-16 h-16 rounded-full flex items-center justify-center font-headline text-sm tracking-wider
-                    transform transition-all hover:scale-110 active:scale-95 border-2
-                    ${value === 25 ? 'bg-team-gray border-team-gold/40 text-team-cream' :
-                      value === 100 ? 'bg-team-gray border-team-gold/60 text-team-gold' :
-                      'bg-team-gray border-team-gold text-team-gold'}
-                    ${bankroll < value ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'}
-                  `}
-                >
-                  ${value}
-                </button>
+                <div key={value} className="flex flex-col items-center gap-0.5">
+                  <button
+                    onClick={() => placeBet(value)}
+                    disabled={currentBet + value > bankroll || gameState !== 'betting'}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center font-headline text-xs tracking-wider
+                      transform transition-all hover:scale-110 active:scale-95 border-2
+                      ${value === 25 ? 'bg-team-gray border-team-gold/40 text-team-cream' :
+                        value === 100 ? 'bg-team-gray border-team-gold/60 text-team-gold' :
+                        'bg-team-gray border-team-gold text-team-gold'}
+                      ${currentBet + value > bankroll ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'}
+                    `}
+                    title={`Add $${value} to bet`}
+                  >
+                    +${value}
+                  </button>
+                  {currentBet >= value && (
+                    <button
+                      onClick={() => placeBet(-value)}
+                      disabled={gameState !== 'betting'}
+                      className="text-xs text-team-silver/60 hover:text-team-silver transition-colors"
+                      title={`Remove $${value} from bet`}
+                    >
+                      -${value}
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
-            
-            {/* Game action buttons - consistent height container */}
-            <div className="h-12 flex justify-center gap-4">
+
+            {/* Game action buttons */}
+            <div className="flex justify-center gap-2 flex-wrap">
               {gameState === 'betting' && (
                 <>
                   <Button
                     onClick={resetBet}
-                    className="font-headline text-xs tracking-[0.15em] uppercase bg-team-gray border border-team-gold/30 text-team-silver hover:text-team-cream hover:border-team-gold/60"
+                    className="font-headline text-[10px] tracking-[0.1em] uppercase bg-team-gray border border-team-gold/30 text-team-silver hover:text-team-cream hover:border-team-gold/60 h-8 px-3"
                     disabled={currentBet <= 0}
                   >
-                    Reset Bet
+                    Reset
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setCurrentBet(bankroll);
+                      setMessage('Going all in!');
+                    }}
+                    className="font-headline text-[10px] tracking-[0.1em] uppercase bg-red-900/30 border border-red-700/40 text-red-400 hover:border-red-700/60 h-8 px-3"
+                    disabled={currentBet === bankroll || bankroll === 0}
+                  >
+                    All In
                   </Button>
                   <Button
                     onClick={startGame}
-                    className="font-headline text-xs tracking-[0.15em] uppercase bg-team-cream text-team-black border border-team-cream hover:bg-team-gold"
+                    className="font-headline text-[10px] tracking-[0.1em] uppercase bg-team-cream text-team-black border border-team-cream hover:bg-team-gold h-8 px-4"
                     disabled={currentBet <= 0}
                   >
                     Deal
@@ -750,16 +712,16 @@ const CasinoPage = () => {
                   {kidneysLeft > 0 ? (
                     <Button
                       onClick={sellKidney}
-                      className="font-headline text-xs tracking-[0.15em] uppercase bg-team-gray border border-red-900/40 text-red-400 hover:border-red-700/60"
+                      className="font-headline text-[10px] tracking-[0.1em] uppercase bg-team-gray border border-red-900/40 text-red-400 hover:border-red-700/60 h-8 px-3"
                     >
-                      Sell Kidney (+${STARTING_BANKROLL})
+                      Sell Kidney
                     </Button>
                   ) : (
                     <Button
                       onClick={resetGame}
-                      className="font-headline text-xs tracking-[0.15em] uppercase bg-team-gray border border-team-gold/30 text-team-gold hover:border-team-gold/60"
+                      className="font-headline text-[10px] tracking-[0.1em] uppercase bg-team-gray border border-team-gold/30 text-team-gold hover:border-team-gold/60 h-8 px-3"
                     >
-                      Reset Game (Out of Kidneys)
+                      Reset Game
                     </Button>
                   )}
                 </>
@@ -769,30 +731,33 @@ const CasinoPage = () => {
                 <>
                   <Button
                     onClick={hit}
-                    className="font-headline text-xs tracking-[0.15em] uppercase bg-team-cream text-team-black hover:bg-team-gold"
+                    className="font-headline text-[10px] tracking-[0.1em] uppercase bg-team-cream text-team-black hover:bg-team-gold h-8 px-4"
                   >
                     Hit
                   </Button>
                   <Button
                     onClick={stand}
-                    className="font-headline text-xs tracking-[0.15em] uppercase bg-team-gray text-team-cream border border-team-gold/30 hover:border-team-gold/60"
+                    className="font-headline text-[10px] tracking-[0.1em] uppercase bg-team-gray text-team-cream border border-team-gold/30 hover:border-team-gold/60 h-8 px-4"
                   >
                     Stand
                   </Button>
-                  <Button
-                    onClick={doubleDown}
-                    className="font-headline text-xs tracking-[0.15em] uppercase bg-team-gold/20 text-team-gold border border-team-gold/40 hover:bg-team-gold/30"
-                    disabled={bankroll < currentBet * 2}
-                  >
-                    Double Down
-                  </Button>
+                  {playerHand.length === 2 && (
+                    <Button
+                      onClick={doubleDown}
+                      className="font-headline text-[10px] tracking-[0.1em] uppercase bg-team-gold/20 text-team-gold border border-team-gold/40 hover:bg-team-gold/30 disabled:opacity-50 disabled:cursor-not-allowed h-8 px-3"
+                      disabled={bankroll < currentBet}
+                      title={bankroll < currentBet ? 'Not enough funds to double down' : 'Double your bet and take one final card'}
+                    >
+                      Double
+                    </Button>
+                  )}
                 </>
               )}
 
               {gameState === 'gameOver' && (
                 <Button
                   onClick={newHand}
-                  className="font-headline text-xs tracking-[0.15em] uppercase bg-team-cream text-team-black hover:bg-team-gold"
+                  className="font-headline text-[10px] tracking-[0.1em] uppercase bg-team-cream text-team-black hover:bg-team-gold h-8 px-4"
                 >
                   New Hand
                 </Button>
@@ -801,35 +766,35 @@ const CasinoPage = () => {
           </div>
         </div>
         
-        {/* Prizes Section */}
-        <div className="mb-8">
-          <h2 className="text-sm font-headline tracking-[0.3em] uppercase text-team-gold mb-6">Redeem Prizes</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Prizes Section - compact */}
+        <div className="mb-4">
+          <h2 className="text-xs font-headline tracking-[0.2em] uppercase text-team-gold mb-3">Redeem Prizes</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {PRIZES.map(prize => (
-              <div key={prize.id} className="vintage-card p-6">
+              <div key={prize.id} className="vintage-card p-3">
                   <div className="flex flex-col h-full">
-                    <div className="mb-4 flex justify-center">
+                    <div className="mb-2 flex justify-center">
                       {prize.image && (
                         <img
                           src={prize.image}
                           alt={prize.name}
-                          className="w-24 h-24 object-contain"
+                          className="w-16 h-16 object-contain"
                         />
                       )}
                     </div>
-                    <h3 className="text-xl font-display font-bold text-team-cream mb-2">
+                    <h3 className="text-base font-display font-bold text-team-cream mb-1">
                       {prize.id === 'pbr' ? (
                         <span>
-                          <span className="text-2xl text-team-gold">{pbrCount}</span> Warm PBR{pbrCount > 1 ? 's' : ''}
+                          <span className="text-lg text-team-gold">{pbrCount}</span> Warm PBR{pbrCount > 1 ? 's' : ''}
                         </span>
                       ) : (
                         prize.name
                       )}
                     </h3>
-                    <p className="text-team-silver mb-4 flex-grow font-body italic">{prize.description}</p>
+                    <p className="text-team-silver mb-2 flex-grow font-body italic text-xs">{prize.description}</p>
 
                     {prize.type === 'slider' ? (
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         <div className="flex items-center">
                           <input
                             type="range"
@@ -841,22 +806,22 @@ const CasinoPage = () => {
                           />
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-lg font-display font-bold text-team-gold">${prize.cost * pbrCount}</span>
+                          <span className="text-sm font-display font-bold text-team-gold">${prize.cost * pbrCount}</span>
                           <Button
                             onClick={() => redeemPrize(prize)}
-                            className="font-headline text-xs tracking-[0.15em] uppercase bg-team-cream text-team-black hover:bg-team-gold"
+                            className="font-headline text-[10px] tracking-[0.1em] uppercase bg-team-cream text-team-black hover:bg-team-gold h-7 px-2"
                             disabled={bankroll < prize.cost * pbrCount}
                           >
-                            Redeem {pbrCount > 10 ? 'Bulk Order' : ''}
+                            Redeem
                           </Button>
                         </div>
                       </div>
                     ) : (
                       <div className="flex justify-between items-center">
-                        <span className="text-lg font-display font-bold text-team-gold">${prize.cost}</span>
+                        <span className="text-sm font-display font-bold text-team-gold">${prize.cost}</span>
                         <Button
                           onClick={() => redeemPrize(prize)}
-                          className="font-headline text-xs tracking-[0.15em] uppercase bg-team-cream text-team-black hover:bg-team-gold"
+                          className="font-headline text-[10px] tracking-[0.1em] uppercase bg-team-cream text-team-black hover:bg-team-gold h-7 px-2"
                           disabled={bankroll < prize.cost}
                         >
                           Redeem

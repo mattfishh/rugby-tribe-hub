@@ -12,6 +12,7 @@ import RosterPage from "./pages/RosterPage";
 import StandingsPage from "./pages/StandingsPage";
 import AboutPage from "./pages/AboutPage";
 import CasinoPage from "./pages/CasinoPage";
+import BattlePage from "./pages/BattlePage";
 import NotFound from "./pages/NotFound";
 import { useInitializeApp } from "./hooks/useInitializeApp";
 
@@ -49,6 +50,7 @@ const App = () => {
                 <Route path="/standings" element={<StandingsPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/casino" element={<CasinoPage />} />
+                <Route path="/battle" element={<BattlePage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

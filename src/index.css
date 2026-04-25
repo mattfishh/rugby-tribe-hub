@@ -1,5 +1,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Bebas+Neue&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -125,6 +126,56 @@
 
   .vintage-btn-outline {
     @apply vintage-btn bg-transparent text-team-cream border-team-gold/40 hover:bg-team-gold/10 hover:border-team-gold;
+  }
+
+  .battle-pixel {
+    font-family: 'Press Start 2P', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    letter-spacing: 0;
+    text-rendering: geometricPrecision;
+  }
+
+  .battle-pixel .vintage-btn,
+  .battle-pixel button,
+  .battle-pixel h1,
+  .battle-pixel h2,
+  .battle-pixel h3,
+  .battle-pixel p,
+  .battle-pixel span,
+  .battle-pixel div {
+    font-family: inherit;
+    letter-spacing: 0;
+  }
+
+  .battle-lunge-player {
+    animation: battle-lunge-player 920ms steps(8, end);
+  }
+
+  .battle-lunge-enemy {
+    animation: battle-lunge-enemy 920ms steps(8, end);
+  }
+}
+
+@keyframes battle-lunge-player {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  45% {
+    transform: translate(430px, -175px);
+  }
+  62% {
+    transform: translate(390px, -155px);
+  }
+}
+
+@keyframes battle-lunge-enemy {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  45% {
+    transform: translate(-430px, 175px);
+  }
+  62% {
+    transform: translate(-390px, 155px);
   }
 }
 

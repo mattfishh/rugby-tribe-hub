@@ -11,6 +11,7 @@ const navigation = [
   { name: 'Standings', href: '/standings' },
   { name: 'About', href: '/about' },
   { name: 'Casino', href: '/casino' },
+  { name: 'Battle', href: '/battle' },
 ];
 
 const Navbar: React.FC = () => {

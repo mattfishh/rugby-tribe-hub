@@ -916,7 +916,7 @@ const BattlePage = () => {
                 <div className="relative z-10 h-[488px] sm:h-[602px]">
                   <StatusPanel combatant={enemy} />
 
-                  <div className="absolute left-[57%] top-[37%] -translate-x-1/2 -translate-y-1/2 sm:left-[74%] sm:top-[42%]">
+                  <div className="absolute left-[65%] top-[37%] -translate-x-1/2 -translate-y-1/2 sm:left-[74%] sm:top-[42%]">
                     <Sprite combatant={enemy} side="enemy" isAnimating={animatingSide === 'enemy'} animationKind={animationKind} />
                   </div>
 

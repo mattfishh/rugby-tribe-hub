@@ -67,7 +67,7 @@ const AboutPage: React.FC = () => {
         <div className="mb-12">
           <h2 className="text-2xl font-display font-bold mb-6 text-team-cream">Join Our Club</h2>
           <p className="mb-4 text-team-silver font-body leading-relaxed">
-            The Trash Pandas roster for the 2025 season has been announced, but if you're willing to fork over $5000, I will gladly let you take my place.
+            The Trash Pandas roster for the 2026 season has been announced, but if you're willing to fork over $5000, I will gladly let you take my place.
           </p>
           <p className="mb-4 text-team-silver font-body leading-relaxed">
             To organize a bribe or get in contact with the team, message me on instagram @tavistocktrashpandas

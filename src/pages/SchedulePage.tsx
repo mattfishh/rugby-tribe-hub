@@ -5,6 +5,7 @@ import { api } from '../../convex/_generated/api';
 import MatchesGrid from '@/components/schedule/MatchesGrid';
 import LoadingSpinner from '@/components/schedule/LoadingSpinner';
 import { Helmet } from 'react-helmet-async';
+import { isBefore, parseISO, startOfToday } from 'date-fns';
 import {
   Select,
   SelectContent,
@@ -43,6 +44,9 @@ const SchedulePage = () => {
   };
 
   const filteredUpcomingMatches = filterMatchesByTeam(upcomingMatchesData);
+  const currentUpcomingMatches = filteredUpcomingMatches.filter(match =>
+    !isBefore(parseISO(match.matchDate), startOfToday())
+  );
   const filteredPastMatches = filterMatchesByTeam(pastMatchesData);
 
   return (
@@ -103,7 +107,7 @@ const SchedulePage = () => {
           </div>
 
           <TabsContent value="upcoming" className="mt-0">
-            <MatchesGrid matches={filteredUpcomingMatches} isPast={false} />
+            <MatchesGrid matches={currentUpcomingMatches} isPast={false} />
           </TabsContent>
 
           <TabsContent value="past" className="mt-0">

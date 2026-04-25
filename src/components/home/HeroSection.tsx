@@ -121,7 +121,7 @@ const HeroSection = () => {
               </div>
             </div>
             <p className="text-lg text-team-silver/80 mb-8 font-body leading-relaxed">
-              Home of the 2024 Ontario Rugby League Champions, and the worst blackjack players you've ever seen.
+              Home of the back to back ORL champions, and the worst blackjack players you've ever seen.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link to="/about" className="vintage-btn-primary">

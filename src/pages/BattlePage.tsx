@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 type CharacterClass = 'king' | 'knight' | 'rogue' | 'wizard' | 'assassin';
@@ -11,6 +11,7 @@ type MoveKind = 'attack' | 'stat';
 type StatName = 'offense' | 'defense' | 'speed';
 type BattleMode = 'command' | 'fight' | 'item' | 'switch' | 'won' | 'lost' | 'escaped';
 type ActorSide = 'player' | 'enemy';
+type AnimationKind = 'lunge' | 'pulse';
 
 interface Move {
   id: string;
@@ -348,7 +349,7 @@ const applyMove = (attacker: Combatant, defender: Combatant, selectedMove: Move)
   const messages: string[] = [`${attacker.name} used ${selectedMove.name}.`];
 
   if (!chance(selectedMove.accuracy)) {
-    messages.push('It missed.');
+    messages.push(selectedMove.target === 'self' ? `${selectedMove.name} move failed.` : 'It missed.');
     return { attacker: nextAttacker, defender: nextDefender, messages };
   }
 
@@ -508,12 +509,31 @@ const applyMoveToBattle = (state: BattleState, actorSide: ActorSide, selectedMov
   };
 };
 
+const applyPotionToBattle = (state: BattleState, item: keyof Inventory) => {
+  const healAmount = item === 'potion' ? 25 : 50;
+  const playerTeam = state.playerTeam.map(cloneCombatant);
+  const player = playerTeam[state.activePlayer];
+  const healed = Math.min(healAmount, player.maxHp - player.hp);
+
+  player.hp = clamp(player.hp + healAmount, 0, player.maxHp);
+  playerTeam[state.activePlayer] = player;
+
+  return {
+    state: {
+      ...state,
+      playerTeam,
+      inventory: { ...state.inventory, [item]: state.inventory[item] - 1 },
+    },
+    messages: [`${player.name} recovered ${healed} HP.`],
+  };
+};
+
 const usePotion = (state: BattleState, item: keyof Inventory): BattleState => {
   if (state.inventory[item] <= 0) {
     return addLog({ ...state, mode: 'command' }, ['No potions left.']);
   }
 
-  const healAmount = item === 'potion' ? 20 : 40;
+  const healAmount = item === 'potion' ? 25 : 50;
   const playerTeam = state.playerTeam.map(cloneCombatant);
   const player = playerTeam[state.activePlayer];
   const healed = Math.min(healAmount, player.maxHp - player.hp);
@@ -566,8 +586,8 @@ const infoButtonClass =
   'flex h-14 w-14 shrink-0 items-center justify-center border-2 border-[#c8bfae] bg-[#f8f4eb] text-[#171411] shadow-[4px_4px_0_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#171411]';
 
 const MoveInfoButton = ({ selectedMove }: { selectedMove: Move }) => (
-  <Tooltip>
-    <TooltipTrigger asChild>
+  <Dialog>
+    <DialogTrigger asChild>
       <button
         type="button"
         className={infoButtonClass}
@@ -575,19 +595,23 @@ const MoveInfoButton = ({ selectedMove }: { selectedMove: Move }) => (
       >
         <Info className="h-5 w-5" />
       </button>
-    </TooltipTrigger>
-    <TooltipContent className="max-w-72 border-2 border-team-gold/60 bg-[#151515] p-4 text-team-cream">
-      <div className="battle-pixel space-y-3 text-[10px] leading-relaxed">
-        <p className="text-amber-300">{selectedMove.name}</p>
-        <p>{selectedMove.description}</p>
+    </DialogTrigger>
+    <DialogContent className="battle-pixel border-4 border-[#b88b45] bg-[#f8f4eb] text-[#171411]">
+      <DialogHeader>
+        <DialogTitle className="text-[15px] leading-relaxed text-[#171411]">{selectedMove.name}</DialogTitle>
+        <DialogDescription className="text-[10px] leading-relaxed text-[#3a3127]">
+          {selectedMove.description}
+        </DialogDescription>
+      </DialogHeader>
+      <div className="grid gap-3 text-[10px] leading-relaxed">
         <p>Type: {selectedMove.kind === 'attack' ? 'Attack' : 'Stat'}</p>
         <p>Target: {selectedMove.target === 'self' ? 'Self' : 'Enemy'}</p>
         <p>Power: {selectedMove.power ?? '-'}</p>
         <p>Accuracy: {selectedMove.accuracy}%</p>
         <p>Stats: {describeStatChanges(selectedMove)}</p>
       </div>
-    </TooltipContent>
-  </Tooltip>
+    </DialogContent>
+  </Dialog>
 );
 
 const ItemInfoButton = ({
@@ -599,8 +623,8 @@ const ItemInfoButton = ({
   healAmount: number;
   description: string;
 }) => (
-  <Tooltip>
-    <TooltipTrigger asChild>
+  <Dialog>
+    <DialogTrigger asChild>
       <button
         type="button"
         className={infoButtonClass}
@@ -608,33 +632,41 @@ const ItemInfoButton = ({
       >
         <Info className="h-5 w-5" />
       </button>
-    </TooltipTrigger>
-    <TooltipContent className="max-w-72 border-2 border-team-gold/60 bg-[#151515] p-4 text-team-cream">
-      <div className="battle-pixel space-y-3 text-[10px] leading-relaxed">
-        <p className="text-amber-300">{name}</p>
-        <p>{description}</p>
+    </DialogTrigger>
+    <DialogContent className="battle-pixel border-4 border-[#b88b45] bg-[#f8f4eb] text-[#171411]">
+      <DialogHeader>
+        <DialogTitle className="text-[15px] leading-relaxed text-[#171411]">{name}</DialogTitle>
+        <DialogDescription className="text-[10px] leading-relaxed text-[#3a3127]">
+          {description}
+        </DialogDescription>
+      </DialogHeader>
+      <div className="grid gap-3 text-[10px] leading-relaxed">
         <p>Effect: Restore {healAmount} HP</p>
         <p>Cost: Uses your turn</p>
+        <p>Speed: Always before the dawg</p>
       </div>
-    </TooltipContent>
-  </Tooltip>
+    </DialogContent>
+  </Dialog>
 );
 
 const Sprite = ({
   combatant,
   side,
   isAnimating,
+  animationKind,
 }: {
   combatant: Combatant;
   side: ActorSide;
   isAnimating: boolean;
+  animationKind: AnimationKind;
 }) => (
   <div
     className={cn(
       'relative flex h-44 w-48 items-end justify-center sm:h-64 sm:w-72',
       side === 'enemy' && 'sm:h-60 sm:w-[17rem]',
-      isAnimating && side === 'player' && 'battle-lunge-player',
-      isAnimating && side === 'enemy' && 'battle-lunge-enemy',
+      isAnimating && animationKind === 'pulse' && 'battle-pulse',
+      isAnimating && animationKind === 'lunge' && side === 'player' && 'battle-lunge-player',
+      isAnimating && animationKind === 'lunge' && side === 'enemy' && 'battle-lunge-enemy',
     )}
   >
     <img
@@ -716,9 +748,16 @@ const ChampionStats = ({ combatant }: { combatant: Combatant }) => {
   );
 };
 
+const finalMessageByMode: Partial<Record<BattleMode, string>> = {
+  won: 'The rival dawg team is out. You win the run.',
+  lost: 'All four raccoons are down. The run is over.',
+  escaped: 'The raccoons retreat to the clubhouse.',
+};
+
 const BattlePage = () => {
   const [battle, setBattle] = useState<BattleState>(() => createBattle());
   const [animatingSide, setAnimatingSide] = useState<ActorSide | null>(null);
+  const [animationKind, setAnimationKind] = useState<AnimationKind>('lunge');
   const [isResolving, setIsResolving] = useState(false);
   const [narration, setNarration] = useState<string[]>([]);
   const player = battle.playerTeam[battle.activePlayer];
@@ -735,6 +774,7 @@ const BattlePage = () => {
     setNarration([announcement]);
     setBattle(nextState);
     await pause(250);
+    setAnimationKind(selectedMove.target === 'self' ? 'pulse' : 'lunge');
     setAnimatingSide(actorSide);
     await pause(920);
     setAnimatingSide(null);
@@ -791,6 +831,64 @@ const BattlePage = () => {
     }
   };
 
+  const animatePotion = async (state: BattleState, item: keyof Inventory) => {
+    const player = state.playerTeam[state.activePlayer];
+    const itemName = item === 'potion' ? 'Potion' : 'Super Potion';
+    const announcement = `${player.name} used ${itemName}.`;
+    let nextState = addLog({ ...state, mode: 'command' }, [announcement]);
+
+    setNarration([announcement]);
+    setBattle(nextState);
+    await pause(250);
+    setAnimationKind('pulse');
+    setAnimatingSide('player');
+    await pause(920);
+    setAnimatingSide(null);
+    await pause(180);
+
+    const result = applyPotionToBattle(nextState, item);
+    nextState = addLog({ ...result.state, mode: 'command' }, result.messages);
+    setNarration([announcement, ...result.messages]);
+    setBattle(nextState);
+    await pause(760);
+
+    return { ...result, state: nextState };
+  };
+
+  const handlePotion = async (item: keyof Inventory) => {
+    if (isResolving) return;
+
+    if (battle.inventory[item] <= 0) {
+      setBattle((state) => addLog({ ...state, mode: 'command' }, ['No potions left.']));
+      return;
+    }
+
+    setIsResolving(true);
+
+    try {
+      const potionResult = await animatePotion({ ...battle, mode: 'command' }, item);
+      const current = potionResult.state;
+
+      if (isStanding(current.enemyTeam[current.activeEnemy])) {
+        const enemy = current.enemyTeam[current.activeEnemy];
+        const currentPlayer = current.playerTeam[current.activePlayer];
+        const enemyMove = chooseEnemyMove(enemy, currentPlayer);
+        const enemyResult = await animateMove(current, 'enemy', enemyMove);
+        const finished = finishTurn(enemyResult.state, []);
+        setBattle(finished);
+        await pause(650);
+      } else {
+        const finished = finishTurn(current, []);
+        setBattle(finished);
+        await pause(650);
+      }
+    } finally {
+      setAnimatingSide(null);
+      setNarration([]);
+      setIsResolving(false);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -819,11 +917,11 @@ const BattlePage = () => {
                   <StatusPanel combatant={enemy} />
 
                   <div className="absolute left-[57%] top-[37%] -translate-x-1/2 -translate-y-1/2 sm:left-[74%] sm:top-[42%]">
-                    <Sprite combatant={enemy} side="enemy" isAnimating={animatingSide === 'enemy'} />
+                    <Sprite combatant={enemy} side="enemy" isAnimating={animatingSide === 'enemy'} animationKind={animationKind} />
                   </div>
 
                   <div className="absolute left-[27%] top-[69%] -translate-x-1/2 -translate-y-1/2 sm:left-[27%] sm:top-[73%]">
-                    <Sprite combatant={player} side="player" isAnimating={animatingSide === 'player'} />
+                    <Sprite combatant={player} side="player" isAnimating={animatingSide === 'player'} animationKind={animationKind} />
                   </div>
 
                   <div className="absolute bottom-0 right-0">
@@ -882,16 +980,16 @@ const BattlePage = () => {
                 {!isResolving && battle.mode === 'item' && (
                   <div className="grid gap-3 sm:grid-cols-2">
                       <div className="grid grid-cols-[1fr_56px] gap-3">
-                        <Button className={menuButtonClass} onClick={() => setBattle((state) => usePotion(state, 'potion'))}>
+                        <Button className={menuButtonClass} onClick={() => handlePotion('potion')}>
                           Potion <span>x{battle.inventory.potion}</span>
                         </Button>
-                        <ItemInfoButton name="Potion" healAmount={20} description="A small bottle for quick recovery." />
+                        <ItemInfoButton name="Potion" healAmount={25} description="A small bottle for quick recovery." />
                       </div>
                       <div className="grid grid-cols-[1fr_56px] gap-3">
-                        <Button className={menuButtonClass} onClick={() => setBattle((state) => usePotion(state, 'superPotion'))}>
+                        <Button className={menuButtonClass} onClick={() => handlePotion('superPotion')}>
                           Super Potion <span>x{battle.inventory.superPotion}</span>
                         </Button>
-                        <ItemInfoButton name="Super Potion" healAmount={40} description="A stronger heal for rough turns." />
+                        <ItemInfoButton name="Super Potion" healAmount={50} description="A stronger heal for rough turns." />
                       </div>
                       <Button className={cn(menuButtonClass, 'sm:col-span-2')} onClick={() => setBattle((state) => ({ ...state, mode: 'command' }))}>
                         Back
@@ -925,9 +1023,7 @@ const BattlePage = () => {
                         {battle.mode === 'won' ? 'Run Won' : battle.mode === 'lost' ? 'Run Lost' : 'Run Ended'}
                       </h2>
                       <div className="max-w-3xl space-y-3 text-[12px] leading-relaxed text-[#171411] sm:text-[15px]">
-                        {battle.log.slice(0, 3).map((entry, index) => (
-                          <p key={`${entry}-${index}`}>{entry}</p>
-                        ))}
+                        <p>{finalMessageByMode[battle.mode]}</p>
                       </div>
                       <Button className={menuButtonClass} onClick={restart}>
                         Play Again
